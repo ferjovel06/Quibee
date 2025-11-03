@@ -1,0 +1,15 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="Quibee.App"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Styles>
+        <FluentTheme />
+    </Application.Styles>
+
+    <Application.Resources>
+        <FontFamily x:Key="LilitaOne">avares://Quibee/Assets/Fonts/LilitaOne-Regular.ttf#Lilita One</FontFamily>
+        <FontFamily x:Key="MoreSugar">avares://Quibee/Assets/Fonts/MoreSugar-Regular.ttf#More Sugar</FontFamily>
+</Application.Resources>
+</Application>
