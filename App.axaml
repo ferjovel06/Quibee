@@ -11,5 +11,5 @@
     <Application.Resources>
         <FontFamily x:Key="LilitaOne">avares://Quibee/Assets/Fonts/LilitaOne-Regular.ttf#Lilita One</FontFamily>
         <FontFamily x:Key="MoreSugar">avares://Quibee/Assets/Fonts/MoreSugar-Regular.ttf#More Sugar</FontFamily>
-</Application.Resources>
+    </Application.Resources>
 </Application>

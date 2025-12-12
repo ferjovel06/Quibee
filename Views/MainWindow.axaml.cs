@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Quibee.ViewModels;
 
 namespace Quibee.Views
 {
@@ -7,6 +8,7 @@ namespace Quibee.Views
         public MainWindow()
         {
             InitializeComponent();
+            DataContext = new MainWindowViewModel();
         }
     }
 }

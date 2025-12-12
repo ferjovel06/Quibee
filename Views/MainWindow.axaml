@@ -10,7 +10,20 @@
         Title="Matemáticas con QUIBEE"
         Width="1024" Height="768"
         WindowStartupLocation="CenterScreen">
+
+  <Window.DataTemplates>
+    <!-- DataTemplate para WelcomeViewModel -->
+    <DataTemplate DataType="vm:WelcomeViewModel">
+      <views:WelcomeView/>
+    </DataTemplate>
+    
+    <!-- DataTemplate para LoginViewModel -->
+    <DataTemplate DataType="vm:LoginViewModel">
+      <views:LoginView/>
+    </DataTemplate>
+  </Window.DataTemplates>
   
-  <views:WelcomeView/>
+  <!-- ContentControl que muestra la vista actual según el ViewModel -->
+  <ContentControl Content="{Binding CurrentView}"/>
   
 </Window>

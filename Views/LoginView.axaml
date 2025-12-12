@@ -1,0 +1,263 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Quibee.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Quibee.Views.LoginView"
+             x:DataType="vm:LoginViewModel">
+    
+    <!-- ============================================ -->
+    <!-- ESTILOS PERSONALIZADOS                      -->
+    <!-- ============================================ -->
+    <UserControl.Styles>
+        <!-- Estilo para botones principales (rojo/rosa) -->
+        <Style Selector="Button.primaryButton">
+            <Setter Property="Background" Value="#D51A52"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="Padding" Value="30,12"/>
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.primaryButton:pointerover">
+            <Setter Property="Background" Value="#E82A62"/>
+        </Style>
+        
+        <!-- Estilo para botón secundario (blanco con borde) -->
+        <Style Selector="Button.secondaryButton">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#311B42"/>
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="Padding" Value="30,12"/>
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="2"/>
+            <Setter Property="BorderBrush" Value="#311B42"/>
+        </Style>
+        <Style Selector="Button.secondaryButton:pointerover">
+            <Setter Property="Background" Value="#F0F0F0"/>
+        </Style>
+        
+        <!-- Estilo para botón de Ingresar deshabilitado (gris) -->
+        <Style Selector="Button.ingresarButton">
+            <Setter Property="Background" Value="#6B6B6B"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="Padding" Value="30,12"/>
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0.6"/>
+        </Style>
+        <!-- Estilo para botón de Ingresar habilitado (rojo) -->
+        <Style Selector="Button.ingresarButton:disabled">
+            <Setter Property="Background" Value="#6B6B6B"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="Opacity" Value="0.6"/>
+        </Style>
+        <Style Selector="Button.ingresarButton:not(:disabled)">
+            <Setter Property="Background" Value="#D51A52"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.ingresarButton:not(:disabled):pointerover">
+            <Setter Property="Background" Value="#E82A62"/>
+        </Style>
+        
+        <!-- Estilo para campos de texto -->
+        <Style Selector="TextBox.loginInput">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#311B42"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Padding" Value="15,12"/>
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="MinHeight" Value="50"/>
+        </Style>
+        
+        <!-- Estilo para el panel de login -->
+        <Style Selector="Border.loginPanel">
+            <Setter Property="Background" Value="#4A2E5C"/>
+            <Setter Property="CornerRadius" Value="30"/>
+            <Setter Property="Padding" Value="30"/>
+        </Style>
+    </UserControl.Styles>
+
+    <!-- ============================================ -->
+    <!-- CONTENEDOR PRINCIPAL CON RESPONSIVE         -->
+    <!-- ============================================ -->
+    <Border Background="#311B42">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
+            <Viewbox Stretch="Uniform" StretchDirection="Both">
+                <Grid Width="1200" Height="700">
+                    
+                    <!-- ============================================ -->
+                    <!-- LAYOUT PRINCIPAL - 2 COLUMNAS               -->
+                    <!-- ============================================ -->
+                    <Grid Margin="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1.3*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ============================================ -->
+                        <!-- COLUMNA IZQUIERDA - Logo + Robot + Botones  -->
+                        <!-- ============================================ -->
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Logo Cohete superior izquierdo -->
+                            <Border Grid.Row="0" 
+                                    Width="160" Height="160"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Margin="0,-20,0,0">
+                                <Image Source="/Assets/Images/Rocket.png"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                            </Border>
+
+                            <!-- Robot rosa centrado -->
+                            <Viewbox Grid.Row="1" 
+                                     MaxWidth="380" MaxHeight="450"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     Margin="0,20,0,20">
+                                <Image Source="/Assets/Images/PinkRobot.png"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                            </Viewbox>
+                        </Grid>
+
+                        <!-- ============================================ -->
+                        <!-- COLUMNA DERECHA - Panel de Login            -->
+                        <!-- ============================================ -->
+                        <Grid Grid.Column="1" 
+                              VerticalAlignment="Center"
+                              HorizontalAlignment="Stretch"
+                              Margin="10,40,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            
+                            <!-- Panel de Login con fondo morado más oscuro -->
+                            <Border Grid.Row="0"
+                                    Classes="loginPanel"
+                                    MaxWidth="500"
+                                    HorizontalAlignment="Stretch">
+                                <StackPanel Spacing="25">
+                                    
+                                    <!-- Encabezado del panel -->
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="¿Ya tienes una cuenta?"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="20"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Inicia Sesión"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="48"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,0,0,10"/>
+                                    </StackPanel>
+
+                                    <!-- Campo: Nombre completo -->
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Nombre completo:"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="18"
+                                                   Foreground="White"/>
+                                        <TextBox Classes="loginInput"
+                                                 Text="{Binding NombreCompleto}"
+                                                 Watermark="Ingresa tu nombre completo"/>
+                                    </StackPanel>
+
+                                    <!-- Campo: Clave de acceso (4 dígitos) -->
+                                    <StackPanel Spacing="8">
+                                        <TextBlock Text="Clave de acceso (4 dígitos):"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="18"
+                                                   Foreground="White"/>
+                                        <TextBox Classes="loginInput"
+                                                 Text="{Binding ClaveAcceso}"
+                                                 Watermark="****"
+                                                 PasswordChar="●"
+                                                 MaxLength="4"/>
+                                    </StackPanel>
+
+                                    <!-- Texto de ayuda -->
+                                    <TextBlock Text="¿Tienes problemas para iniciar sesión?"
+                                               FontFamily="{StaticResource LilitaOne}"
+                                               FontSize="15"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               Opacity="0.9"
+                                               Margin="0,5,0,0"/>
+                                    <TextBlock Text="Presiona aquí para ver el tutorial"
+                                               FontFamily="{StaticResource LilitaOne}"
+                                               FontSize="15"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               TextDecorations="Underline"
+                                               Opacity="0.9"
+                                               Cursor="Hand"/>
+
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Botón Ingresar en segunda fila -->
+                            <Button Grid.Row="1"
+                                    Classes="ingresarButton"
+                                    Content="Ingresar"
+                                    Command="{Binding IngresarCommand}"
+                                    HorizontalAlignment="Center"
+                                    Margin="0,25,0,0"/>
+                        </Grid>
+
+                    </Grid>
+
+                    <!-- Contenedor superior derecho -->
+                    <StackPanel Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Margin="0,20,20,0"
+                                Spacing="15">
+                        <!-- Botón Retroceder -->
+                        <Button Classes="primaryButton"
+                                Content="Retroceder"
+                                Command="{Binding RetrocederCommand}"/>
+                        
+                        <!-- Textos apilados verticalmente -->
+                        <StackPanel Orientation="Vertical" Spacing="3" VerticalAlignment="Center">
+                            <TextBlock Text="¿No tienes una cuenta?"
+                                       FontFamily="{StaticResource LilitaOne}"
+                                       FontSize="18"
+                                       Foreground="White"/>
+                            <TextBlock Text="Regístrate en nuevo usuario"
+                                       FontFamily="{StaticResource LilitaOne}"
+                                       FontSize="16"
+                                       Foreground="White"
+                                       Opacity="0.8"/>
+                        </StackPanel>
+                        
+                        <!-- Botón Nuevo Usuario -->
+                        <Button Classes="secondaryButton"
+                                Content="Nuevo Usuario"
+                                Command="{Binding NuevoUsuarioCommand}"/>
+                    </StackPanel>
+
+                </Grid>
+            </Viewbox>
+        </ScrollViewer>
+    </Border>
+</UserControl>

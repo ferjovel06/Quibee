@@ -5,8 +5,11 @@ namespace Quibee.ViewModels
 {
     public class WelcomeViewModel : ViewModelBase
     {
-        public WelcomeViewModel()
+        private readonly MainWindowViewModel? _mainWindowViewModel;
+
+        public WelcomeViewModel(MainWindowViewModel? mainWindowViewModel = null)
         {
+            _mainWindowViewModel = mainWindowViewModel;
             StartCommand = new RelayCommand(OnStart);
         }
 
@@ -14,8 +17,8 @@ namespace Quibee.ViewModels
 
         private void OnStart()
         {
-            // Aquí irá la lógica para navegar a la siguiente pantalla
-            // Por ejemplo, mostrar la pantalla de login o menú principal
+            // Navegar a la pantalla de login
+            _mainWindowViewModel?.NavigateToLogin();
         }
     }
 

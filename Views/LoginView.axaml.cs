@@ -2,9 +2,9 @@ using Avalonia.Controls;
 
 namespace Quibee.Views
 {
-    public partial class WelcomeView : UserControl
+    public partial class LoginView : UserControl
     {
-        public WelcomeView()
+        public LoginView()
         {
             InitializeComponent();
             // El DataContext será asignado por el binding en MainWindow
