@@ -46,7 +46,7 @@
                                RenderOptions.BitmapInterpolationMode="HighQuality"/>
                         
                         <Image Source="/Assets/Images/3.png" 
-                               MaxWidth="140" MaxHeight="140"
+                               MaxWidth="100" MaxHeight="100"
                                HorizontalAlignment="Right" VerticalAlignment="Bottom"
                                Margin="0,0,500,0"
                                RenderOptions.BitmapInterpolationMode="HighQuality"/>
@@ -73,8 +73,8 @@
                         
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="3*"/>
-                            <ColumnDefinition Width="2*"/>
+                            <ColumnDefinition Width="4*"/>
+                            <ColumnDefinition Width="1.5*"/>
                         </Grid.ColumnDefinitions>
 
                         <Image Grid.Row="0" Grid.Column="0"
@@ -98,13 +98,13 @@
                                 RenderOptions.BitmapInterpolationMode="HighQuality"/>
                         </Border>
 
-                        <!-- Número 3 decorativo - Sobre el saludo -->
+                        <!-- Número 1 decorativo - Sobre el saludo -->
                         <Image Grid.Row="0" Grid.Column="1"
                                Source="/Assets/Images/1.png" 
-                               MaxWidth="140" MaxHeight="140"
+                               MaxWidth="100" MaxHeight="100"
                                HorizontalAlignment="Left"
                                VerticalAlignment="Top"
-                               Margin="100,0,0,0" 
+                               Margin="200,0,0,0" 
                                RenderOptions.BitmapInterpolationMode="HighQuality"/>
 
                         <!-- CONTENIDO TEXTUAL -->
@@ -121,11 +121,11 @@
                         </TextBlock>
 
                         <StackPanel Grid.Row="2" Grid.Column="1"
-                                    HorizontalAlignment="Center"
+                                    HorizontalAlignment="Left"
                                     VerticalAlignment="Center"
                                     Margin="0,0,0,40"
                                     Spacing="0"
-                                    RenderTransformOrigin="0.5,0.5">
+                                    RenderTransformOrigin="0,0.5">
                             <StackPanel.RenderTransform>
                                 <RotateTransform Angle="-3"/>
                             </StackPanel.RenderTransform>
@@ -134,7 +134,8 @@
                                       FontSize="100"
                                       Foreground="#F2F2F2"
                                       HorizontalAlignment="Left"
-                                      TextAlignment="Center"/>
+                                      TextAlignment="Left"
+                                      TextWrapping="NoWrap"/>
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="15">
                                 <TextBlock Text="con"
                                           FontFamily="{StaticResource LilitaOne}"
@@ -152,7 +153,8 @@
                                Content="Inicio"
                                Command="{Binding StartCommand}"
                                HorizontalAlignment="Left"
-                               RenderTransformOrigin="0.5,0.5">
+                               Margin="20,-15,0,0"
+                               RenderTransformOrigin="0,0.5">
                             <Button.RenderTransform>
                                 <RotateTransform Angle="-3"/>
                             </Button.RenderTransform>

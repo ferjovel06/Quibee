@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Quibee.ViewModels"
+             x:Class="Quibee.Views.GradeSelectionView"
+             x:DataType="vm:GradeSelectionViewModel">
+    
+    <UserControl.Styles>
+        <Style Selector="Border.gradeCard">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="3"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Width" Value="200"/>
+            <Setter Property="Height" Value="280"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Border.gradeCard:pointerover">
+            <Setter Property="Background" Value="#FFFFFF20"/>
+            <Setter Property="BorderBrush" Value="#FFFFFF40"/>
+        </Style>
+
+        <Style Selector="TextBlock.gradeLabel">
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="32"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+
+        <Style Selector="TextBlock.gradeTitle">
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="64"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Margin" Value="0,40,0,60"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#311B42">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                     VerticalScrollBarVisibility="Auto">
+            <Viewbox Stretch="Uniform">
+                <Grid Width="1200" Height="700">
+                    
+                    <!-- Elementos decorativos de fondo -->
+                    <Canvas>
+                        <!-- Meteorito -->
+                        <Image Source="/Assets/Images/Meteor.png"
+                               MaxWidth="120" MaxHeight="120"
+                               Canvas.Left="50" Canvas.Top="80"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                        
+                        <!-- Cohete con ardilla -->
+                        <Image Source="/Assets/Images/SquirrelRocket.png"
+                               MaxWidth="140" MaxHeight="140"
+                               Canvas.Right="50" Canvas.Top="50"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                        
+                        <!-- Alien -->
+                        <Image Source="/Assets/Images/Alien.png"
+                               MaxWidth="200" MaxHeight="200"
+                               Canvas.Left="30" Canvas.Bottom="30"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                    </Canvas>
+
+                    <!-- Contenido principal -->
+                    <StackPanel VerticalAlignment="Center" 
+                               HorizontalAlignment="Center"
+                               Spacing="40">
+                        
+                        <!-- Título -->
+                        <TextBlock Classes="gradeTitle"
+                                  Text="¿En qué grado estás?"/>
+
+                        <!-- Contenedor de los tres grados -->
+                        <StackPanel Orientation="Horizontal" 
+                                   HorizontalAlignment="Center"
+                                   Spacing="60">
+                            
+                            <!-- Primer grado -->
+                            <Border Classes="gradeCard"
+                                   PointerPressed="OnFirstGradePressed">
+                                <StackPanel Spacing="16" 
+                                          VerticalAlignment="Center">
+                                    <!-- Planeta con número 1 superpuesto -->
+                                    <Grid Width="150" Height="150">
+                                        <Image Source="/Assets/Images/Neptune.png"
+                                              Stretch="Uniform"
+                                              RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                                        <TextBlock Text="1"
+                                                  FontFamily="{StaticResource LilitaOne}"
+                                                  FontSize="100"
+                                                  Foreground="White"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <TextBlock Classes="gradeLabel"
+                                              Text="Primer grado"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Segundo grado -->
+                            <Border Classes="gradeCard"
+                                   PointerPressed="OnSecondGradePressed">
+                                <StackPanel Spacing="16" 
+                                          VerticalAlignment="Center">
+                                    <!-- Planeta con número 2 superpuesto -->
+                                    <Grid Width="150" Height="150">
+                                        <Image Source="/Assets/Images/GreenPlanet.png"
+                                              Stretch="Uniform"
+                                              RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                                        <TextBlock Text="2"
+                                                  FontFamily="{StaticResource LilitaOne}"
+                                                  FontSize="100"
+                                                  Foreground="White"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <TextBlock Classes="gradeLabel"
+                                              Text="Segundo grado"/>
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Tercer grado -->
+                            <Border Classes="gradeCard"
+                                   PointerPressed="OnThirdGradePressed">
+                                <StackPanel Spacing="16" 
+                                          VerticalAlignment="Center">
+                                    <!-- Planeta con número 3 superpuesto -->
+                                    <Grid Width="150" Height="150">
+                                        <Image Source="/Assets/Images/LilacPlanet.png"
+                                              Stretch="Uniform"
+                                              RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                                        <TextBlock Text="3"
+                                                  FontFamily="{StaticResource LilitaOne}"
+                                                  FontSize="100"
+                                                  Foreground="White"
+                                                  HorizontalAlignment="Center"
+                                                  VerticalAlignment="Center"/>
+                                    </Grid>
+                                    <TextBlock Classes="gradeLabel"
+                                              Text="Tercer grado"/>
+                                </StackPanel>
+                            </Border>
+
+                        </StackPanel>
+                    </StackPanel>
+
+                </Grid>
+            </Viewbox>
+        </ScrollViewer>
+    </Border>
+</UserControl>

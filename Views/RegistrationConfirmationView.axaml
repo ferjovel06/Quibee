@@ -1,0 +1,237 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Quibee.ViewModels"
+             x:Class="Quibee.Views.RegistrationConfirmationView"
+             x:DataType="vm:RegistrationConfirmationViewModel">
+    
+    <UserControl.Styles>
+        <Style Selector="TextBlock.titleText">
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="48"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+
+        <Style Selector="TextBlock.infoLabel">
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="Margin" Value="0,0,0,4"/>
+        </Style>
+
+        <Style Selector="TextBlock.infoValue">
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style Selector="Button.continuarButton">
+            <Setter Property="Background" Value="#D51A52"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="28"/>
+            <Setter Property="Padding" Value="50,15"/>
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+
+        <Style Selector="Button.continuarButton:pointerover">
+            <Setter Property="Background" Value="#E92A62"/>
+        </Style>
+
+        <Style Selector="Border.infoCard">
+            <Setter Property="Background" Value="#4A2E5C"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Padding" Value="30"/>
+            <Setter Property="MaxWidth" Value="400"/>
+        </Style>
+
+        <Style Selector="Border.speechBubble">
+            <Setter Property="Background" Value="#8AB4E6"/>
+            <Setter Property="CornerRadius" Value="50"/>
+            <Setter Property="Padding" Value="30"/>
+            <Setter Property="MaxWidth" Value="380"/>
+        </Style>
+        
+        <Style Selector="Path.bubbleTail">
+            <Setter Property="Fill" Value="#8AB4E6"/>
+        </Style>
+
+        <Style Selector="TextBlock.bubbleText">
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="18"/>
+            <Setter Property="Foreground" Value="#311B42"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="TextAlignment" Value="Center"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#311B42">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+                     VerticalScrollBarVisibility="Auto">
+            <Viewbox Stretch="Uniform">
+                <Grid Width="1200" Height="700">
+                    
+                    <Canvas>
+                        <!-- Cohete -->
+                        <Image Source="/Assets/Images/BlueRocket.png"
+                               MaxWidth="110" MaxHeight="110"
+                               Canvas.Left="80" Canvas.Top="30"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                        
+                        <Image Source="/Assets/Images/UFO.png"
+                               MaxWidth="150" MaxHeight="150"
+                               Canvas.Right="80" Canvas.Top="45"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                        
+                        <Image Source="/Assets/Images/SmallStar.png"
+                               MaxWidth="30" MaxHeight="30"
+                               Canvas.Left="400" Canvas.Bottom="40"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                        
+                        <!-- Estrella inferior derecha -->
+                        <Image Source="/Assets/Images/SmallStar.png"
+                               MaxWidth="30" MaxHeight="30"
+                               Canvas.Right="330" Canvas.Top="40"
+                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                    </Canvas>
+
+                    <!-- Contenido principal -->
+                    <Grid Margin="60,40">
+                        
+                        <!-- Título centrado en la pantalla -->
+                        <StackPanel Spacing="8" 
+                                   VerticalAlignment="Top"
+                                   HorizontalAlignment="Center">
+                            <TextBlock Classes="titleText"
+                                      Text="Te has registrado"
+                                      HorizontalAlignment="Center"/>
+                            <TextBlock Classes="titleText"
+                                      Text="Guarda tu información"
+                                      HorizontalAlignment="Center"/>
+                        </StackPanel>
+                        
+                        <!-- Contenido a la izquierda -->
+                        <StackPanel VerticalAlignment="Center"
+                                   HorizontalAlignment="Left"
+                                   Spacing="30"
+                                   Margin="0,120,0,0">
+
+                            <!-- Tarjeta con información -->
+                            <Border Classes="infoCard" HorizontalAlignment="Left">
+                                <StackPanel Spacing="20">
+                                    
+                                    <!-- Nombre de usuario -->
+                                    <StackPanel Spacing="8">
+                                        <StackPanel Orientation="Horizontal" Spacing="10">
+                                            <TextBlock Classes="infoLabel" 
+                                                      Text="Nombre de usuario:"
+                                                      VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                        <TextBlock Classes="infoValue"
+                                                  Text="{Binding NombreCompleto}"/>
+                                    </StackPanel>
+
+                                    <!-- Fecha de nacimiento -->
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Image Source="/Assets/Images/Cake.png" 
+                                               Width="48" Height="48" 
+                                               VerticalAlignment="Top"
+                                               Margin="0,4,0,0"/>
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Classes="infoLabel" 
+                                                      Text="Fecha de nacimiento:"/>
+                                            <TextBlock Classes="infoValue"
+                                                      Text="{Binding FechaNacimientoFormateada}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Género -->
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <Image Source="/Assets/Images/RobotHead.png" 
+                                               Width="48" Height="48" 
+                                               VerticalAlignment="Top"
+                                               Margin="0,4,0,0"/>
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Classes="infoLabel" 
+                                                      Text="Género:"/>
+                                            <TextBlock Classes="infoValue"
+                                                      Text="{Binding Genero}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <!-- Grado -->
+                                    <StackPanel Orientation="Horizontal" Spacing="10">
+                                        <TextBlock Text="{Binding GradoNumero}"
+                                                  FontFamily="{StaticResource LilitaOne}"
+                                                  FontSize="48"
+                                                  Foreground="White"
+                                                  VerticalAlignment="Top"
+                                                  Margin="0,0,0,0"/>
+                                        <StackPanel Spacing="8">
+                                            <TextBlock Classes="infoLabel" 
+                                                      Text="Grado:"/>
+                                            <TextBlock Classes="infoValue"
+                                                      Text="{Binding Grado}"/>
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Botón continuar -->
+                            <Button Classes="continuarButton"
+                                   Content="Continuar"
+                                   Command="{Binding ContinuarCommand}"
+                                   HorizontalAlignment="Left"
+                                   Margin="0,10,0,0"/>
+
+                        </StackPanel>
+
+                        <!-- Robot en la parte inferior derecha -->
+                        <Canvas HorizontalAlignment="Right" 
+                               VerticalAlignment="Bottom"
+                               Margin="0,0,0,0">
+                            
+                            <!-- Robot más grande -->
+                            <Image Source="/Assets/Images/RobotInverted.png"
+                                   Width="450" Height="450"
+                                   Canvas.Bottom="0"
+                                   Canvas.Right="0"
+                                   RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                            
+                            <!-- Burbuja de diálogo con forma de nubecita -->
+                            <Canvas Canvas.Left="-650" Canvas.Bottom="470">
+                                <Grid>
+                                    <!-- Burbuja principal redondeada -->
+                                    <Border Background="#8AB4E6"
+                                           CornerRadius="40"
+                                           Width="320"
+                                           Height="140"
+                                           Padding="30,25">
+                                        <TextBlock Classes="bubbleText"
+                                                  Text="Si te equivocaste al escribir tus datos no te preocupes, puedes cambiar tu información en la ventana de tu perfil."/>
+                                    </Border>
+                                    
+                                    <!-- Cola triangular pequeña en esquina inferior derecha -->
+                                    <Path Fill="#8AB4E6"
+                                          Data="M 285,135 L 295,155 L 270,140 Z"
+                                          HorizontalAlignment="Right"
+                                          VerticalAlignment="Bottom"/>
+                                </Grid>
+                            </Canvas>
+
+                        </Canvas>
+
+                    </Grid>
+
+                </Grid>
+            </Viewbox>
+        </ScrollViewer>
+    </Border>
+</UserControl>

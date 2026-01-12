@@ -66,7 +66,7 @@ namespace Quibee.ViewModels
         private void OnNuevoUsuario()
         {
             // Navegar a la pantalla de registro de nuevo usuario
-            // TODO: Implementar navegación a pantalla de registro
+            _mainWindowViewModel?.NavigateToRegister();
         }
 
         private void OnIngresar()

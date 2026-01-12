@@ -1,0 +1,246 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Quibee.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="1920" d:DesignHeight="1080"
+             x:Class="Quibee.Views.RegisterView"
+             x:DataType="vm:RegisterViewModel">
+    
+    <!-- ============================================ -->
+    <!-- ESTILOS PERSONALIZADOS                      -->
+    <!-- ============================================ -->
+    <UserControl.Styles>
+        <!-- Estilo para botón primario (rojo/rosa) -->
+        <Style Selector="Button.primaryButton">
+            <Setter Property="Background" Value="#D51A52"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="21"/>
+            <Setter Property="Padding" Value="28,11"/>
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+        </Style>
+        <Style Selector="Button.primaryButton:pointerover">
+            <Setter Property="Background" Value="#E82A62"/>
+        </Style>
+        
+        <!-- Estilo para botón secundario (verde/teal) -->
+        <Style Selector="Button.confirmButton">
+            <Setter Property="Background" Value="#6B6B6B"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="21"/>
+            <Setter Property="Padding" Value="28,11"/>
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Opacity" Value="0.6"/>
+        </Style>
+        <Style Selector="Button.confirmButton:disabled">
+            <Setter Property="Background" Value="#6B6B6B"/>
+            <Setter Property="Cursor" Value="Arrow"/>
+            <Setter Property="Opacity" Value="0.6"/>
+        </Style>
+        <Style Selector="Button.confirmButton:not(:disabled)">
+            <Setter Property="Background" Value="#177475"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Opacity" Value="1"/>
+        </Style>
+        <Style Selector="Button.confirmButton:not(:disabled):pointerover">
+            <Setter Property="Background" Value="#1E8A8B"/>
+        </Style>
+        
+        <!-- Estilo para campos de texto -->
+        <Style Selector="TextBox.registerInput">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Foreground" Value="#311B42"/>
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="17"/>
+            <Setter Property="Padding" Value="14,11"/>
+            <Setter Property="CornerRadius" Value="25"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="MinHeight" Value="48"/>
+        </Style>
+        
+        <!-- Estilo para el DatePicker -->
+        <Style Selector="DatePicker">
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+        </Style>
+        
+        <!-- Estilo para el panel de registro -->
+        <Style Selector="Border.registerPanel">
+            <Setter Property="Background" Value="#4A2E5C"/>
+            <Setter Property="CornerRadius" Value="30"/>
+            <Setter Property="Padding" Value="28"/>
+        </Style>
+    </UserControl.Styles>
+
+    <!-- ============================================ -->
+    <!-- CONTENEDOR PRINCIPAL CON RESPONSIVE         -->
+    <!-- ============================================ -->
+    <Border Background="#311B42">
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+            <Grid MinWidth="800" MaxWidth="1400" Margin="20">
+                    
+                    <!-- ============================================ -->
+                    <!-- LAYOUT PRINCIPAL - 2 COLUMNAS               -->
+                    <!-- ============================================ -->
+                    <Grid Margin="20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="1.3*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <!-- ============================================ -->
+                        <!-- COLUMNA IZQUIERDA - Estrella + Robot        -->
+                        <!-- ============================================ -->
+                        <Grid Grid.Column="0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="*"/>
+                            </Grid.RowDefinitions>
+
+                            <!-- Estrella decorativa superior izquierda -->
+                            <Border Grid.Row="0" 
+                                    Width="80" Height="80"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Top"
+                                    Margin="20,-10,0,0">
+                                <Image Source="/Assets/Images/Star.png"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                            </Border>
+
+                            <!-- Robot rosa centrado -->
+                            <Viewbox Grid.Row="1" 
+                                     MaxWidth="380" MaxHeight="450"
+                                     HorizontalAlignment="Center"
+                                     VerticalAlignment="Center"
+                                     Margin="0,20,0,20">
+                                <Image Source="/Assets/Images/PinkRobot.png"
+                                       Stretch="Uniform"
+                                       RenderOptions.BitmapInterpolationMode="HighQuality"/>
+                            </Viewbox>
+                        </Grid>
+
+                        <!-- ============================================ -->
+                        <!-- COLUMNA DERECHA - Panel de Registro         -->
+                        <!-- ============================================ -->
+                        <StackPanel Grid.Column="1" 
+                                    VerticalAlignment="Top"
+                                    HorizontalAlignment="Stretch"
+                                    Margin="10,10,0,0"
+                                    Spacing="20">
+                            
+                            <!-- Panel de Registro con fondo morado más oscuro -->
+                            <Border Classes="registerPanel"
+                                    MaxWidth="490"
+                                    HorizontalAlignment="Stretch">
+                                <StackPanel Spacing="16">
+                                    
+                                    <!-- Encabezado del panel -->
+                                    <StackPanel Spacing="4">
+                                        <TextBlock Text="¿Nuevo usuario?"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="19"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center"/>
+                                        <TextBlock Text="Regístrate"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="44"
+                                                   Foreground="White"
+                                                   HorizontalAlignment="Center"
+                                                   Margin="0,0,0,4"/>
+                                    </StackPanel>
+
+                                    <!-- Campo: Nombres -->
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Nombres:"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="17"
+                                                   Foreground="White"/>
+                                        <TextBox Classes="registerInput"
+                                                 Text="{Binding Nombres}"
+                                                 Watermark="Ingresa tus nombres"/>
+                                    </StackPanel>
+
+                                    <!-- Campo: Apellidos -->
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Apellidos:"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="17"
+                                                   Foreground="White"/>
+                                        <TextBox Classes="registerInput"
+                                                 Text="{Binding Apellidos}"
+                                                 Watermark="Ingresa tus apellidos"/>
+                                    </StackPanel>
+
+                                    <!-- Campo: Fecha de nacimiento -->
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Fecha de nacimiento:"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="17"
+                                                   Foreground="White"/>
+                                        <DatePicker SelectedDate="{Binding FechaNacimiento}"
+                                                    HorizontalAlignment="Stretch"
+                                                    CornerRadius="25"
+                                                    MinHeight="48"/>
+                                    </StackPanel>
+
+                                    <!-- Campo: Clave de acceso (4 dígitos) -->
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Clave de acceso (4 dígitos):"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="17"
+                                                   Foreground="White"/>
+                                        <TextBox Classes="registerInput"
+                                                 Text="{Binding ClaveAcceso}"
+                                                 Watermark="****"
+                                                 PasswordChar="●"
+                                                 MaxLength="4"/>
+                                    </StackPanel>
+
+                                    <!-- Texto de ayuda -->
+                                    <TextBlock Text="¿Tienes problemas para iniciar sesión?"
+                                               FontFamily="{StaticResource LilitaOne}"
+                                               FontSize="14"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               Opacity="0.9"
+                                               Margin="0,4,0,0"/>
+                                    <TextBlock Text="Presiona aquí para ver el tutorial"
+                                               FontFamily="{StaticResource LilitaOne}"
+                                               FontSize="14"
+                                               Foreground="White"
+                                               HorizontalAlignment="Center"
+                                               TextDecorations="Underline"
+                                               Opacity="0.9"
+                                               Cursor="Hand"/>
+
+                                </StackPanel>
+                            </Border>
+                            
+                            <!-- Botones -->
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Center"
+                                        Spacing="20">
+                                <!-- Botón Regresar -->
+                                <Button Classes="primaryButton"
+                                        Content="Regresar"
+                                        Command="{Binding RegresarCommand}"/>
+                                
+                                <!-- Botón Confirmar -->
+                                <Button Classes="confirmButton"
+                                        Content="Confirmar"
+                                        Command="{Binding ConfirmarCommand}"/>
+                            </StackPanel>
+                        </StackPanel>
+
+                    </Grid>
+
+                </Grid>
+        </ScrollViewer>
+    </Border>
+</UserControl>

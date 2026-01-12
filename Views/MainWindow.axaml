@@ -21,6 +21,26 @@
     <DataTemplate DataType="vm:LoginViewModel">
       <views:LoginView/>
     </DataTemplate>
+    
+    <!-- DataTemplate para RegisterViewModel -->
+    <DataTemplate DataType="vm:RegisterViewModel">
+      <views:RegisterView/>
+    </DataTemplate>
+    
+    <!-- DataTemplate para GenderSelectionViewModel -->
+    <DataTemplate DataType="vm:GenderSelectionViewModel">
+      <views:GenderSelectionView/>
+    </DataTemplate>
+    
+    <!-- DataTemplate para GradeSelectionViewModel -->
+    <DataTemplate DataType="vm:GradeSelectionViewModel">
+      <views:GradeSelectionView/>
+    </DataTemplate>
+    
+    <!-- DataTemplate para RegistrationConfirmationViewModel -->
+    <DataTemplate DataType="vm:RegistrationConfirmationViewModel">
+      <views:RegistrationConfirmationView/>
+    </DataTemplate>
   </Window.DataTemplates>
   
   <!-- ContentControl que muestra la vista actual según el ViewModel -->
