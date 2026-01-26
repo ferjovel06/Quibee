@@ -1,0 +1,147 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Quibee.ViewModels"
+             x:Class="Quibee.Views.Lesson_G1T2_View"
+             x:DataType="vm:Lesson_G1T2_ViewModel">
+
+    <Border Background="#311B42" Padding="40">
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel MaxWidth="900" Spacing="30">
+                
+                <!-- Título de la lección -->
+                <TextBlock Text="{Binding LessonTitle}"
+                          FontFamily="{StaticResource LilitaOne}"
+                          FontSize="32"
+                          Foreground="White"
+                          TextAlignment="Center"
+                          TextWrapping="Wrap"/>
+
+                <!-- Texto introductorio -->
+                <Border Background="#4A2B5C" 
+                       CornerRadius="15" 
+                       Padding="25">
+                    <TextBlock Text="{Binding IntroText}"
+                              FontFamily="{StaticResource LilitaOne}"
+                              FontSize="16"
+                              Foreground="White"
+                              TextWrapping="Wrap"
+                              LineHeight="24"/>
+                </Border>
+
+                <!-- ¿Qué significa relacionar números con objetos? -->
+                <StackPanel Spacing="15">
+                    <TextBlock Text="{Binding WhatDoesItMeanTitle}"
+                              FontFamily="{StaticResource LilitaOne}"
+                              FontSize="24"
+                              Foreground="#FFD700"
+                              TextWrapping="Wrap"/>
+                    
+                    <Border Background="#3D2050" 
+                           CornerRadius="12" 
+                           Padding="20">
+                        <TextBlock Text="{Binding WhatDoesItMeanText}"
+                                  FontFamily="{StaticResource LilitaOne}"
+                                  FontSize="16"
+                                  Foreground="White"
+                                  TextWrapping="Wrap"
+                                  LineHeight="24"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Analicemos -->
+                <StackPanel Spacing="15">
+                    <Button Background="#E91E8C"
+                           CornerRadius="20"
+                           Padding="20,10"
+                           HorizontalAlignment="Left">
+                        <TextBlock Text="{Binding AnalicemosTitle}"
+                                  FontFamily="{StaticResource LilitaOne}"
+                                  FontSize="20"
+                                  Foreground="White"/>
+                    </Button>
+                    
+                    <Border Background="#3D2050" 
+                           CornerRadius="12" 
+                           Padding="20">
+                        <TextBlock Text="{Binding AnalicemosText}"
+                                  FontFamily="{StaticResource LilitaOne}"
+                                  FontSize="16"
+                                  Foreground="White"
+                                  TextWrapping="Wrap"
+                                  LineHeight="24"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Ejemplo visual -->
+                <Border Background="#4A2B5C" 
+                       CornerRadius="15" 
+                       Padding="30"
+                       HorizontalAlignment="Center">
+                    <StackPanel Spacing="20" HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding ExampleQuestion}"
+                                  FontFamily="{StaticResource LilitaOne}"
+                                  FontSize="20"
+                                  Foreground="White"
+                                  TextAlignment="Center"/>
+                        
+                        <!-- Flecha visual -->
+                        <TextBlock Text="⬇"
+                                  FontSize="40"
+                                  Foreground="#00D9FF"
+                                  HorizontalAlignment="Center"/>
+                        
+                        <!-- Número resultado -->
+                        <Border Background="#00D9FF"
+                               CornerRadius="50"
+                               Width="100"
+                               Height="100"
+                               HorizontalAlignment="Center">
+                            <TextBlock Text="5"
+                                      FontFamily="{StaticResource LilitaOne}"
+                                      FontSize="60"
+                                      Foreground="White"
+                                      VerticalAlignment="Center"
+                                      HorizontalAlignment="Center"/>
+                        </Border>
+                        
+                        <TextBlock Text="{Binding ExampleAnswer}"
+                                  FontFamily="{StaticResource LilitaOne}"
+                                  FontSize="16"
+                                  Foreground="White"
+                                  TextAlignment="Center"
+                                  TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Botones de navegación -->
+                <Grid ColumnDefinitions="*,*" Margin="0,20,0,0">
+                    <Button Grid.Column="0"
+                           Background="#6B4C7A"
+                           CornerRadius="25"
+                           Padding="30,15"
+                           HorizontalAlignment="Left"
+                           Command="{Binding VolverCommand}">
+                        <TextBlock Text="← Volver"
+                                  FontFamily="{StaticResource LilitaOne}"
+                                  FontSize="18"
+                                  Foreground="White"/>
+                    </Button>
+                    
+                    <Button Grid.Column="1"
+                           Background="#E91E8C"
+                           CornerRadius="25"
+                           Padding="30,15"
+                           HorizontalAlignment="Right"
+                           Command="{Binding SiguienteCommand}">
+                        <TextBlock Text="Siguiente →"
+                                  FontFamily="{StaticResource LilitaOne}"
+                                  FontSize="18"
+                                  Foreground="White"/>
+                    </Button>
+                </Grid>
+
+            </StackPanel>
+        </ScrollViewer>
+    </Border>
+
+</UserControl>

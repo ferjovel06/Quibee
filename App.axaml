@@ -1,5 +1,6 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="using:Quibee.Converters"
              x:Class="Quibee.App"
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
@@ -11,5 +12,11 @@
     <Application.Resources>
         <FontFamily x:Key="LilitaOne">avares://Quibee/Assets/Fonts/LilitaOne-Regular.ttf#Lilita One</FontFamily>
         <FontFamily x:Key="MoreSugar">avares://Quibee/Assets/Fonts/MoreSugar-Regular.ttf#More Sugar</FontFamily>
+        <FontFamily x:Key="Poppins">avares://Quibee/Assets/Fonts/Poppins-Regular.ttf#Poppins</FontFamily>
+        
+        <!-- Converters -->
+        <converters:BoolToColorConverter x:Key="BoolToColorConverter"/>
+        <converters:BoolToBorderThicknessConverter x:Key="BoolToBorderThicknessConverter"/>
+        <converters:BoolToForegroundConverter x:Key="BoolToForegroundConverter"/>
     </Application.Resources>
 </Application>

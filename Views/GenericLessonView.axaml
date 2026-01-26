@@ -1,0 +1,143 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Quibee.ViewModels"
+             x:Class="Quibee.Views.GenericLessonView"
+             x:DataType="vm:GenericLessonViewModel">
+
+    <Border Background="#311B42">
+        <Grid ColumnDefinitions="*,250">
+        
+            <!-- CONTENEDOR IZQUIERDO (Navbar + Contenido) -->
+            <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*">
+                
+                <!-- BARRA DE NAVEGACIÓN HORIZONTAL (arriba) -->
+                <StackPanel Grid.Row="0"
+                           Orientation="Horizontal"
+                           HorizontalAlignment="Left"
+                           Margin="70,30,0,20"
+                           Spacing="30">
+                    
+                    <!-- Botón Lecciones (activo) -->
+                    <Button Background="White"
+                           BorderThickness="0"
+                           CornerRadius="20"
+                           Padding="30,10"
+                           Cursor="Hand"
+                           Command="{Binding VolverCommand}">
+                        <TextBlock Text="Lecciones"
+                                 FontFamily="{StaticResource LilitaOne}"
+                                 FontSize="24"
+                                 Foreground="#311B42"/>
+                    </Button>
+
+                    <!-- Botón Manual -->
+                    <Button Background="Transparent"
+                           BorderThickness="0"
+                           Cursor="Hand">
+                        <TextBlock Text="Manual"
+                                 FontFamily="{StaticResource LilitaOne}"
+                                 FontSize="24"
+                                 Foreground="White"/>
+                    </Button>
+
+                    <!-- Botón Usuario -->
+                    <Button Background="#D51A52"
+                           BorderThickness="0"
+                           CornerRadius="20"
+                           Padding="30,10"
+                           Cursor="Hand">
+                        <TextBlock Text="Usuario"
+                                 FontFamily="{StaticResource LilitaOne}"
+                                 FontSize="24"
+                                 Foreground="White"/>
+                    </Button>
+                </StackPanel>
+
+                <!-- Título de la lección -->
+                <Border Grid.Row="1"
+                       Background="#7CDAF3"
+                       Padding="50,15,50,15"
+                       Margin="70,20,70,0"
+                       CornerRadius="10">
+                    <TextBlock Text="{Binding LessonTitle}"
+                              FontFamily="{StaticResource LilitaOne}"
+                              FontSize="24"
+                              Foreground="#311B42"
+                              TextWrapping="Wrap"/>
+                </Border>
+
+                <!-- Contenido Principal (abajo) -->
+                <Border Grid.Row="2" Background="#311B42">
+                <ScrollViewer VerticalScrollBarVisibility="Auto"
+                             Padding="40">
+                    <StackPanel MaxWidth="900" Spacing="25">
+                        
+                        <!-- Contenido de la sección actual -->
+                        <TextBlock Text="{Binding CurrentSectionContent}"
+                                  FontFamily="{StaticResource Poppins}"
+                                  FontSize="16"
+                                  Foreground="White"
+                                  TextWrapping="Wrap"
+                                  LineHeight="22"/>
+                        
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+            
+            </Grid>
+            
+            <!-- CONTENEDOR DERECHO (Sidebar) -->
+            <Border Grid.Column="1" Background="#7CDAF3">
+                <DockPanel LastChildFill="True">
+
+                <!-- Logo Q-bit arriba -->
+                <Image DockPanel.Dock="Top"
+                      Source="avares://Quibee/Assets/Images/QbitLogo.png"
+                      Width="120"
+                      Height="120"
+                      HorizontalAlignment="Center"
+                      Margin="0,20,0,20"/>
+
+                <!-- Secciones -->
+                <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto" Margin="0,0,0,0">
+                    <ItemsControl ItemsSource="{Binding Sections}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border BorderThickness="0"
+                                       Background="{Binding IsSelected, Converter={StaticResource BoolToColorConverter}}"
+                                       CornerRadius="0,30,30,0"
+                                       Margin="0,2,10,2">
+                                    <Button Background="Transparent"
+                                           BorderThickness="0"
+                                           Padding="15,14"
+                                           HorizontalAlignment="Stretch"
+                                           HorizontalContentAlignment="Right"
+                                           Command="{Binding $parent[UserControl].((vm:GenericLessonViewModel)DataContext).SectionClickCommand}"
+                                           CommandParameter="{Binding}">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <TextBlock Text="{Binding Name}"
+                                                      FontFamily="{StaticResource Poppins}"
+                                                      FontSize="18"
+                                                      FontWeight="SemiBold"
+                                                      Foreground="{Binding IsSelected, Converter={StaticResource BoolToForegroundConverter}}"
+                                                      VerticalAlignment="Center"/>
+                                            <Image Source="{Binding Icon}"
+                                                  Width="22"
+                                                  Height="22"
+                                                  VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </Button>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+                          
+                </DockPanel>
+            </Border>
+
+        </Grid>
+
+    </Border>
+
+</UserControl>

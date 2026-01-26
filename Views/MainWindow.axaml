@@ -41,6 +41,16 @@
     <DataTemplate DataType="vm:RegistrationConfirmationViewModel">
       <views:RegistrationConfirmationView/>
     </DataTemplate>
+    
+    <!-- DataTemplate para LessonsMapViewModel -->
+    <DataTemplate DataType="vm:LessonsMapViewModel">
+      <views:LessonsMapView/>
+    </DataTemplate>
+    
+    <!-- DataTemplate para GenericLessonViewModel -->
+    <DataTemplate DataType="vm:GenericLessonViewModel">
+      <views:GenericLessonView/>
+    </DataTemplate>
   </Window.DataTemplates>
   
   <!-- ContentControl que muestra la vista actual según el ViewModel -->

@@ -1,4 +1,5 @@
 using Quibee.Models;
+using Quibee;
 
 namespace Quibee.ViewModels
 {
@@ -8,22 +9,11 @@ namespace Quibee.ViewModels
 
         public MainWindowViewModel()
         {
-            // Iniciar con la vista de bienvenida
+            // Producción: Iniciar con la vista de bienvenida
             _currentView = new WelcomeViewModel(this);
             
-            // TEMPORAL: Iniciar con la vista de confirmación de registro para pruebas
-            /*
-            var testData = new UserRegistrationData
-            {
-                Nombres = "Jairo José",
-                Apellidos = "Martínez Álvarez",
-                FechaNacimiento = new System.DateTime(2006, 4, 28),
-                Genero = "Masculino",
-                Grado = "Segundo grado",
-                ClaveAcceso = "1234"
-            };
-            _currentView = new RegistrationConfirmationViewModel(this, testData);
-            */
+            // TEMPORAL: Para testing directo del mapa
+            // _currentView = new LessonsMapViewModel(this, studentId: 1, gradeLevel: 1, ServiceLocator.GetTopicService());
         }
 
         /// <summary>
@@ -88,6 +78,25 @@ namespace Quibee.ViewModels
         public void NavigateToRegistrationConfirmation(UserRegistrationData userData)
         {
             CurrentView = new RegistrationConfirmationViewModel(this, userData);
+        }
+
+        /// <summary>
+        /// Navega al mapa de lecciones después del login
+        /// </summary>
+        /// <param name="studentId">ID del estudiante logueado</param>
+        /// <param name="gradeLevel">Grado del estudiante (1, 2 o 3)</param>
+        public void NavigateToLessonsMap(int studentId, int gradeLevel)
+        {
+            CurrentView = new LessonsMapViewModel(this, studentId, gradeLevel, ServiceLocator.GetTopicService());
+        }
+
+        /// <summary>
+        /// Navega a una lección genérica con los datos proporcionados
+        /// </summary>
+        /// <param name="lessonData">Datos de la lección</param>
+        public void NavigateToGenericLesson(Quibee.Models.LessonData lessonData)
+        {
+            CurrentView = new GenericLessonViewModel(this, lessonData);
         }
     }
 }

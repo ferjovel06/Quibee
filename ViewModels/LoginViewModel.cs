@@ -1,5 +1,9 @@
 using System;
 using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Quibee.Database;
+using Quibee.Services;
 
 namespace Quibee.ViewModels
 {
@@ -69,13 +73,46 @@ namespace Quibee.ViewModels
             _mainWindowViewModel?.NavigateToRegister();
         }
 
-        private void OnIngresar()
+        private async void OnIngresar()
         {
-            // Validar credenciales e iniciar sesión
-            // TODO: Implementar lógica de autenticación
-            if (ValidarCredenciales())
+            try
             {
-                // Navegar al menú principal o dashboard
+                // Crear DbContext y servicio
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(AppContext.BaseDirectory)
+                    .AddJsonFile("appsettings.json", optional: false)
+                    .AddJsonFile("appsettings.Development.json", optional: true)
+                    .Build();
+
+                var connectionString = configuration.GetConnectionString("QuibeeDb");
+                
+                var optionsBuilder = new DbContextOptionsBuilder<QuibeeDbContext>();
+                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                
+                using var context = new QuibeeDbContext(optionsBuilder.Options);
+                var studentService = new StudentService(context);
+
+                Console.WriteLine($"🔐 Intentando login: {NombreCompleto}");
+
+                // Validar login
+                var student = await studentService.LoginAsync(NombreCompleto, ClaveAcceso);
+
+                if (student != null)
+                {
+                    Console.WriteLine($"✅ Login exitoso! Bienvenido {student.FirstName}");
+                    
+                    // ✅ Navegar al mapa de lecciones
+                    _mainWindowViewModel?.NavigateToLessonsMap(student.IdStudent, student.GradeLevel);
+                }
+                else
+                {
+                    Console.WriteLine("❌ Credenciales incorrectas");
+                    // TODO: Mostrar mensaje de error al usuario
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error en login: {ex.Message}");
             }
         }
 

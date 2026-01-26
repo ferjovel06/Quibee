@@ -235,16 +235,3 @@ CREATE TABLE IF NOT EXISTS SESSION_LOG (
     FOREIGN KEY (id_student) REFERENCES STUDENT(id_student) ON DELETE CASCADE,
     INDEX idx_student_sessions (id_student, login_time)
 );
-
--- ========================================
--- ÍNDICES ADICIONALES PARA PERFORMANCE
--- ========================================
-
--- Índice compuesto para consultas de progreso por nivel y estudiante
-CREATE INDEX idx_student_level_completion ON STUDENT_LEVEL_PROGRESS(id_student, id_level, is_completed);
-
--- Índice para búsquedas de ejercicios por tipo
-CREATE INDEX idx_exercise_type ON EXERCISE(exercise_type, is_active);
-
--- Índice para consultas de intentos correctos
-CREATE INDEX idx_correct_attempts ON EXERCISE_ATTEMPT(id_student, is_correct, attempted_at);

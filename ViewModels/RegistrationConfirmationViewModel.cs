@@ -1,6 +1,10 @@
 using System;
 using System.Windows.Input;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Quibee.Database;
 using Quibee.Models;
+using Quibee.Services;
 
 namespace Quibee.ViewModels
 {
@@ -44,10 +48,50 @@ namespace Quibee.ViewModels
 
         public ICommand ContinuarCommand { get; }
 
-        private void OnContinuar()
+        private async void OnContinuar()
         {
-            // TODO: Guardar los datos y navegar a la siguiente pantalla
-            _mainWindowViewModel?.NavigateToWelcome();
+            try
+            {
+                // Crear DbContext y servicio
+                var configuration = new ConfigurationBuilder()
+                    .SetBasePath(AppContext.BaseDirectory)
+                    .AddJsonFile("appsettings.json", optional: false)
+                    .AddJsonFile("appsettings.Development.json", optional: true)
+                    .Build();
+
+                var connectionString = configuration.GetConnectionString("QuibeeDb");
+                
+                var optionsBuilder = new DbContextOptionsBuilder<QuibeeDbContext>();
+                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                
+                using var context = new QuibeeDbContext(optionsBuilder.Options);
+                var studentService = new StudentService(context);
+
+                Console.WriteLine("💾 Guardando estudiante en la base de datos...");
+
+                // Registrar estudiante
+                var student = await studentService.RegisterStudentAsync(_userData);
+
+                if (student != null)
+                {
+                    Console.WriteLine($"✅ ¡Registro completado exitosamente!");
+                    Console.WriteLine($"   👤 Usuario: {student.Username}");
+                    Console.WriteLine($"   🎓 Grado: {student.GradeLevel}°");
+                    Console.WriteLine($"   🔑 ID: {student.IdStudent}");
+                    
+                    // ✅ Navegar al mapa de lecciones con el estudiante logueado
+                    _mainWindowViewModel?.NavigateToLessonsMap(student.IdStudent, student.GradeLevel);
+                }
+                else
+                {
+                    Console.WriteLine("❌ Error: No se pudo registrar el estudiante");
+                    // TODO: Mostrar mensaje de error al usuario
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"❌ Error al guardar: {ex.Message}");
+            }
         }
     }
 }
