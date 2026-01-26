@@ -1,75 +1,88 @@
-# 🤖 Quibee
+# 🚀 Quibee - Plataforma Educativa Interactiva
 
-Plataforma educativa para que niños de primaria aprendan matemáticas con el robot Q-BIT.
+![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?style=flat-square)
+![Avalonia](https://img.shields.io/badge/Avalonia-11.3-8B44AC?style=flat-square)
+![MySQL](https://img.shields.io/badge/MySQL-8.0-4479A1?style=flat-square&logo=mysql&logoColor=white)
+![C#](https://img.shields.io/badge/C%23-12-239120?style=flat-square&logo=csharp&logoColor=white)
+![License](https://img.shields.io/badge/License-MIT-green?style=flat-square)
 
-## ¿Qué necesito instalar?
+Aplicación educativa de escritorio desarrollada con **Avalonia UI** y **.NET 9**, diseñada para enseñar matemáticas de forma interactiva a estudiantes de primaria mediante un sistema de lecciones dinámicas y gamificadas.
 
-### 1. Instalar .NET 9.0
-1. Ve a: https://dotnet.microsoft.com/download/dotnet/9.0
-2. Descarga el **SDK** (no el Runtime)
-3. Ejecuta el instalador
-4. Abre una terminal y verifica:
-   ```
-   dotnet --version
-   ```
-   Debe mostrar algo como `9.0.x`
 
-### 2. Instalar Git (si no lo tienes)
-1. Ve a: https://git-scm.com/download/win
-2. Descarga e instala
-3. Deja todo por defecto (Next, Next, Next...)
+## 🛠️ Tecnologías
 
-### 3. Instalar Visual Studio Code (opcional pero recomendado)
-1. Ve a: https://code.visualstudio.com/
-2. Descarga e instala
-3. Abre VS Code e instala la extensión **C# Dev Kit**
+### Frontend
+- **[Avalonia UI 11.3.6](https://avaloniaui.net/)** - Framework UI multiplataforma
+- **XAML** - Lenguaje de marcado declarativo
+- **C# 12** - Lenguaje de programación
 
-## ¿Cómo lo ejecuto?
+### Backend
+- **[.NET 9.0](https://dotnet.microsoft.com/)** - Runtime y SDK
+- **[Entity Framework Core](https://docs.microsoft.com/ef/)** - ORM para acceso a datos
+- **[Pomelo.EntityFrameworkCore.MySql](https://github.com/PomeloFoundation/Pomelo.EntityFrameworkCore.MySql)** - Provider MySQL para EF Core
 
-### Opción 1: Desde la terminal (más fácil)
+### Base de Datos
+- **[MySQL 8.0](https://www.mysql.com/)** - Sistema de gestión de bases de datos
+- **MySQL Workbench** - Herramienta de administración (opcional)
 
-1. **Abrir PowerShell** (búscalo en el menú inicio)
+### Herramientas de Desarrollo
+- **[NixOS](https://nixos.org/)** - Sistema operativo (desarrollo)
+- **[Visual Studio Code](https://code.visualstudio.com/)** - Editor de código
+- **Git** - Control de versiones
 
-2. **Clonar el proyecto:**
-   ```powershell
-   git clone https://github.com/ferjovel06/Quibee.git
-   cd Quibee
-   ```
+## 📦 Instalación
 
-3. **Instalar dependencias** (Avalonia se descarga automáticamente):
-   ```powershell
-   dotnet restore
-   ```
-   
-4. **Ejecutar:**
-   ```powershell
-   cd Quibee
-   dotnet run
-   ```
+### Prerrequisitos
 
-5. **¡Listo!** Debe abrir la ventana de la aplicación
+```bash
+# Verificar instalación de .NET
+dotnet --version  # Debe ser 9.0 o superior
 
-### Opción 2: Desde Visual Studio Code
+# Verificar instalación de MySQL
+mysql --version   # Debe ser 8.0 o superior
+```
 
-1. Abre VS Code
-2. File → Open Folder → Selecciona la carpeta `Quibee`
-3. Abre una terminal en VS Code (Terminal → New Terminal)
-4. Ejecuta:
-   ```powershell
-   cd Quibee
-   dotnet run
-   ```
+### Clonar el Repositorio
 
-## ¿Qué tecnologías usa?
+```bash
+git clone https://github.com/ferjovel06/Quibee.git
+cd Quibee/Quibee
+```
 
-- **Avalonia UI** 11.3.6 - Framework para crear interfaces (como WPF pero cross-platform)
-- **.NET 9.0** - Lo que hace que todo funcione
-- **MySQL 8.0** - Base de datos (próximamente)
+### Configurar Base de Datos
 
-## ¿Problemas?
+1. **Crear la base de datos:**
+```sql
+CREATE DATABASE quibee_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+```
 
-Si algo no funciona:
-1. Verifica que instalaste .NET 9.0 SDK (no Runtime)
-2. Ejecuta `dotnet restore` de nuevo
-3. Cierra y vuelve a abrir la terminal
-4. Pregunta en el grupo 😊
+2. **Ejecutar el schema:**
+```bash
+mysql -u root -p quibee_db < Database/schema_improved.sql
+```
+
+3. **Ejecutar migraciones:**
+```bash
+mysql -u root -p quibee_db < Database/migration_add_topic_positions.sql
+mysql -u root -p quibee_db < Database/sync_topics_with_fallback.sql
+```
+
+4. **Configurar cadena de conexión en `appsettings.json`:**
+```json
+{
+  "ConnectionStrings": {
+    "QuibeeDatabase": "Server=localhost;Database=quibee_db;User=root;Password=TU_PASSWORD;"
+  }
+}
+```
+
+### Compilar y Ejecutar
+
+#### Usando .NET CLI
+```bash
+dotnet restore
+dotnet build
+dotnet run
+```
+
+El DataSeeder se ejecutará automáticamente en el primer inicio y poblará la base de datos con datos iniciales (3 grados, 15 temas, ejemplos de lecciones).
