@@ -60,42 +60,6 @@ class Program
         }
     }
 
-    // ===== MÉTODOS DE TEST (COMENTADOS) =====
-    // Descomentar si necesitas probar la conexión o el registro
-
-    /*
-    private static void TestStudentRegistration()
-    {
-        Console.WriteLine("\n🧪 Probando registro de estudiante...\n");
-        
-        try
-        {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(AppContext.BaseDirectory)
-                .AddJsonFile("appsettings.json", optional: false)
-                .AddJsonFile("appsettings.Development.json", optional: true)
-                .Build();
-
-            var connectionString = configuration.GetConnectionString("QuibeeDb");
-            
-            var optionsBuilder = new DbContextOptionsBuilder<QuibeeDbContext>();
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-            
-            using var context = new QuibeeDbContext(optionsBuilder.Options);
-            context.Database.EnsureCreated();
-            
-            var testService = new DatabaseTestService(context);
-            testService.CreateTestStudent();
-            
-            Console.WriteLine("\n✅ Test completado!\n");
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"\n❌ Error: {ex.Message}\n");
-        }
-    }
-    */
-
     // Avalonia configuration, don't remove; also used by visual designer.
     public static AppBuilder BuildAvaloniaApp()
         => AppBuilder.Configure<App>()
