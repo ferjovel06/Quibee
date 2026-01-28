@@ -15,6 +15,10 @@ public class LessonsMapViewModel : ViewModelBase
     private readonly int _studentId;
     private readonly int _gradeLevel;
     private readonly TopicService _topicService;
+    
+    // Cache para búsqueda rápida de nodos por ID (O(1) en lugar de O(n))
+    // Crítico con ~30 nodos por grado
+    private readonly Dictionary<string, ThemeData> _nodeCache = new();
 
     public LessonsMapViewModel(
         MainWindowViewModel? mainWindowViewModel,
@@ -27,10 +31,12 @@ public class LessonsMapViewModel : ViewModelBase
         _gradeLevel = gradeLevel;
         _topicService = topicService;
 
-        // Inicializar colección vacía
+        // Inicializar colecciones
         Themes = new ObservableCollection<ThemeData>();
+        Nodes = new ObservableCollection<ThemeData>();
+        Edges = new ObservableCollection<TemaEdge>();
 
-        // Comandos para cada tema
+        // Comandos para cada tema (DEPRECATED - se mantendrán por compatibilidad temporal)
         Tema1Command = new RelayCommand(OnTema1Click);
         Tema2Command = new RelayCommand(OnTema2Click);
         Tema3Command = new RelayCommand(OnTema3Click);
@@ -46,10 +52,21 @@ public class LessonsMapViewModel : ViewModelBase
         _ = LoadThemesFromDatabaseAsync();
     }
 
-    // Colección de temas dinámicos
+    // Colección de temas dinámicos (DEPRECATED - usar Nodes en su lugar)
     public ObservableCollection<ThemeData> Themes { get; }
     
-    // Propiedades individuales para acceso directo en XAML
+    // ===== NUEVAS COLECCIONES DATA-DRIVEN =====
+    /// <summary>
+    /// Colección de nodos (temas) para renderizado dinámico con ItemsControl
+    /// </summary>
+    public ObservableCollection<ThemeData> Nodes { get; }
+    
+    /// <summary>
+    /// Colección de conexiones entre nodos para renderizado dinámico
+    /// </summary>
+    public ObservableCollection<TemaEdge> Edges { get; }
+    
+    // Propiedades individuales para acceso directo en XAML (DEPRECATED - usar Nodes)
     public ThemeData Tema1 => Themes.Count > 0 ? Themes[0] : null!;
     public ThemeData Tema2 => Themes.Count > 1 ? Themes[1] : null!;
     public ThemeData Tema3 => Themes.Count > 2 ? Themes[2] : null!;
@@ -86,13 +103,47 @@ public class LessonsMapViewModel : ViewModelBase
     {
         try
         {
+            Console.WriteLine($"🔍 DEBUG: Cargando temas para grado {_gradeLevel}...");
+            
             // Cargar temas desde BD
             var topics = await _topicService.GetTopicsByLevelAsync(_gradeLevel);
+            Console.WriteLine($"🔍 DEBUG: topics.Count = {topics.Count}");
             
             // Mapear a ThemeData con posiciones según el grado
             var themesData = topics.Select(topic => MapTopicToThemeData(topic, topic.OrderIndex, _gradeLevel)).ToList();
+            Console.WriteLine($"🔍 DEBUG: themesData.Count = {themesData.Count}");
             
-            // Actualizar colección observable
+            // ===== Actualizar colección NODES (nueva arquitectura) =====
+            Nodes.Clear();
+            _nodeCache.Clear(); // Limpiar cache antes de repoblar
+            
+            foreach (var theme in themesData)
+            {
+                // Asignar comando al nodo
+                theme.Command = new RelayCommand(() => OnTemaClick(theme));
+                Nodes.Add(theme);
+                
+                // Agregar al cache para búsqueda O(1)
+                _nodeCache[theme.NodeId] = theme;
+            }
+            
+            // DEBUG: Verificar que Nodes se llenó correctamente
+            Console.WriteLine($"🔍 DEBUG: Nodes.Count = {Nodes.Count}");
+            foreach (var node in Nodes)
+            {
+                Console.WriteLine($"   - Node {node.NodeId}: {node.Title} at ({node.PositionX}, {node.PositionY})");
+            }
+            
+            // ===== Generar EDGES automáticamente (conexiones secuenciales) =====
+            Edges.Clear();
+            for (int i = 0; i < Nodes.Count - 1; i++)
+            {
+                var fromNode = Nodes[i];
+                var toNode = Nodes[i + 1];
+                Edges.Add(new TemaEdge(fromNode.NodeId, toNode.NodeId));
+            }
+            
+            // ===== Actualizar colección THEMES (deprecated, para compatibilidad) =====
             Themes.Clear();
             foreach (var theme in themesData)
             {
@@ -112,6 +163,30 @@ public class LessonsMapViewModel : ViewModelBase
             
             // Fallback: cargar datos estáticos si falla la BD
             var fallbackThemes = LoadThemesForGrade(_gradeLevel);
+            
+            // Llenar Nodes y asignar comandos
+            Nodes.Clear();
+            _nodeCache.Clear(); // Limpiar cache
+            
+            foreach (var theme in fallbackThemes)
+            {
+                theme.Command = new RelayCommand(() => OnTemaClick(theme));
+                Nodes.Add(theme);
+                
+                // Agregar al cache para búsqueda O(1)
+                _nodeCache[theme.NodeId] = theme;
+            }
+            
+            // Generar Edges
+            Edges.Clear();
+            for (int i = 0; i < Nodes.Count - 1; i++)
+            {
+                var fromNode = Nodes[i];
+                var toNode = Nodes[i + 1];
+                Edges.Add(new TemaEdge(fromNode.NodeId, toNode.NodeId));
+            }
+            
+            // Llenar Themes (deprecated)
             foreach (var theme in fallbackThemes)
             {
                 Themes.Add(theme);
@@ -141,6 +216,14 @@ public class LessonsMapViewModel : ViewModelBase
             adjustedX -= 50; // Compensar el ancho del texto
         }
         
+        // Asegurar que SIEMPRE uno de los flags sea true (evitar contenido invisible)
+        var textOnLeft = topic.TextOnLeft;
+        var textOnRight = topic.TextOnRight;
+        if (!textOnLeft && !textOnRight)
+        {
+            textOnRight = true; // Default: texto a la derecha
+        }
+        
         return new ThemeData
         {
             TopicId = topic.IdTopic,
@@ -153,10 +236,20 @@ public class LessonsMapViewModel : ViewModelBase
             PositionX = adjustedX,
             PositionY = topic.PositionY,
             UseRightAlignment = false, // Siempre usar Canvas.Left
-            TextOnLeft = topic.TextOnLeft,
-            TextOnRight = topic.TextOnRight,
+            TextOnLeft = textOnLeft,
+            TextOnRight = textOnRight,
             RotationAngle = topic.RotationAngle
         };
+    }
+
+    /// <summary>
+    /// Busca un nodo por su ID usando cache para O(1) lookup
+    /// (Crítico con ~30 nodos por grado)
+    /// </summary>
+    public ThemeData? GetNodeById(string nodeId)
+    {
+        _nodeCache.TryGetValue(nodeId, out var node);
+        return node;
     }
 
     /// <summary>
@@ -390,7 +483,29 @@ public class LessonsMapViewModel : ViewModelBase
         };
     }
 
-    // Handlers de temas
+    // ===== NUEVO: Handler genérico para cualquier tema =====
+    /// <summary>
+    /// Handler genérico para clicks en temas. Recibe el nodo clickeado.
+    /// </summary>
+    private void OnTemaClick(ThemeData theme)
+    {
+        System.Console.WriteLine($"🎮 Abriendo Tema {theme.ThemeNumber} (ID: {theme.TopicId}) para estudiante {_studentId}");
+        
+        // Lógica específica según grado y tema
+        if (_gradeLevel == 1 && theme.ThemeNumber == 2)
+        {
+            // Grado 1, Tema 2: Relacionemos números y objetos
+            var lessonData = CreateLesson_G1T2();
+            _mainWindowViewModel?.NavigateToGenericLesson(lessonData);
+        }
+        else
+        {
+            // TODO: Implementar lecciones para otros grados y temas
+            System.Console.WriteLine($"⚠️ Lección no implementada para grado {_gradeLevel}, tema {theme.ThemeNumber}");
+        }
+    }
+
+    // ===== DEPRECATED: Handlers individuales (mantener por compatibilidad temporal) =====
     private void OnTema1Click()
     {
         System.Console.WriteLine($"🎮 Abriendo Tema 1 para estudiante {_studentId}");

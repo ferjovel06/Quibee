@@ -1,11 +1,14 @@
 using System;
+using System.Windows.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 
 namespace Quibee.Models
 {
     /// <summary>
-    /// Modelo que representa un tema en el mapa de lecciones
+    /// Modelo que representa un tema (nodo) en el mapa de lecciones.
+    /// Contiene toda la información necesaria para renderizar un nodo:
+    /// posición, imagen, texto, y comando de navegación.
     /// </summary>
     public class ThemeData
     {
@@ -100,5 +103,15 @@ namespace Quibee.Models
         /// Ángulo de rotación de la imagen (para la estrella, por ejemplo)
         /// </summary>
         public double RotationAngle { get; set; } = 0;
+
+        /// <summary>
+        /// Comando que se ejecuta al hacer clic en el tema
+        /// </summary>
+        public ICommand? Command { get; set; }
+
+        /// <summary>
+        /// ID único del nodo (usado para referencias en edges)
+        /// </summary>
+        public string NodeId => TopicId.ToString();
     }
 }

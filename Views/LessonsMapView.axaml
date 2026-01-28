@@ -133,186 +133,74 @@
                                 </Path.Data>
                             </Path>
 
-                            <!-- TEMAS DINÁMICOS (con reflection binding) -->
-                            
-                            <!-- Tema 1 -->
-                            <Button Background="Transparent"
-                                   BorderThickness="0"
-                                   Cursor="Hand"
-                                   Canvas.Left="{Binding Tema1.PositionX}"
-                                   Canvas.Top="{Binding Tema1.PositionY}"
-                                   Command="{Binding Tema1Command}">
-                                <StackPanel Orientation="Horizontal" Spacing="10"
-                                           IsVisible="{Binding Tema1.TextOnLeft}">
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Tema1.Title}"
-                                                 FontFamily="{StaticResource LilitaOne}"
-                                                 FontSize="18"
-                                                 Foreground="White"
-                                                 TextAlignment="Right"/>
-                                        <TextBlock Text="{Binding Tema1.Description}"
-                                                 FontFamily="{StaticResource LilitaOne}"
-                                                 FontSize="14"
-                                                 Foreground="White"
-                                                 TextAlignment="Right"/>
-                                    </StackPanel>
-                                    <Image Source="{Binding Tema1.Image}"
-                                          Width="{Binding Tema1.ImageWidth}"
-                                          Height="{Binding Tema1.ImageHeight}"/>
-                                </StackPanel>
-                            </Button>
+                            <!-- ===== NODOS DINÁMICOS (ItemsControl data-driven) ===== -->
+                            <ItemsControl ItemsSource="{Binding Nodes}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas Width="1200" Height="700"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
 
-                            <!-- Tema 2 -->
-                            <Button Background="Transparent"
-                                   BorderThickness="0"
-                                   Cursor="Hand"
-                                   Canvas.Left="{Binding Tema2.PositionX}"
-                                   Canvas.Top="{Binding Tema2.PositionY}"
-                                   Command="{Binding Tema2Command}">
-                                <StackPanel Orientation="Horizontal" Spacing="10"
-                                           IsVisible="{Binding Tema2.TextOnLeft}">
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Tema2.Title}"
-                                                 FontFamily="{StaticResource LilitaOne}"
-                                                 FontSize="18"
-                                                 Foreground="White"
-                                                 TextAlignment="Right"/>
-                                        <TextBlock Text="{Binding Tema2.Description}"
-                                                 FontFamily="{StaticResource LilitaOne}"
-                                                 FontSize="14"
-                                                 Foreground="White"
-                                                 TextAlignment="Right"/>
-                                    </StackPanel>
-                                    <Image Source="{Binding Tema2.Image}"
-                                          Width="{Binding Tema2.ImageWidth}"
-                                          Height="{Binding Tema2.ImageHeight}"/>
-                                </StackPanel>
-                            </Button>
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:ThemeData">
+                                        <!-- Usar Button con RenderTransform para posicionar -->
+                                        <Button Background="Transparent"
+                                               BorderThickness="0"
+                                               Cursor="Hand"
+                                               Command="{Binding Command}">
+                                            <Button.RenderTransform>
+                                                <TranslateTransform X="{Binding PositionX}" Y="{Binding PositionY}"/>
+                                            </Button.RenderTransform>
+                                            <Panel>
 
-                            <!-- Tema 3 -->
-                            <Button Background="Transparent"
-                                   BorderThickness="0"
-                                   Cursor="Hand"
-                                   Canvas.Left="{Binding Tema3.PositionX}"
-                                   Canvas.Top="{Binding Tema3.PositionY}"
-                                   Command="{Binding Tema3Command}">
-                                <Panel>
-                                    <!-- Layout: Texto a la izquierda, imagen a la derecha -->
-                                    <StackPanel Orientation="Horizontal" Spacing="10"
-                                               IsVisible="{Binding Tema3.TextOnLeft}">
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Tema3.Title}"
-                                                     FontFamily="{StaticResource LilitaOne}"
-                                                     FontSize="18"
-                                                     Foreground="White"
-                                                     TextAlignment="Right"/>
-                                            <TextBlock Text="{Binding Tema3.Description}"
-                                                     FontFamily="{StaticResource LilitaOne}"
-                                                     FontSize="14"
-                                                     Foreground="White"
-                                                     TextAlignment="Right"/>
-                                        </StackPanel>
-                                        <Image Source="{Binding Tema3.Image}"
-                                              Width="{Binding Tema3.ImageWidth}"
-                                              Height="{Binding Tema3.ImageHeight}"/>
-                                    </StackPanel>
-                                    <!-- Layout: Imagen a la izquierda, texto a la derecha -->
-                                    <StackPanel Orientation="Horizontal" Spacing="10"
-                                               IsVisible="{Binding Tema3.TextOnRight}">
-                                        <Image Source="{Binding Tema3.Image}"
-                                              Width="{Binding Tema3.ImageWidth}"
-                                              Height="{Binding Tema3.ImageHeight}"/>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Tema3.Title}"
-                                                     FontFamily="{StaticResource LilitaOne}"
-                                                     FontSize="18"
-                                                     Foreground="White"
-                                                     TextAlignment="Left"/>
-                                            <TextBlock Text="{Binding Tema3.Description}"
-                                                     FontFamily="{StaticResource LilitaOne}"
-                                                     FontSize="14"
-                                                     Foreground="White"
-                                                     TextAlignment="Left"/>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Panel>
-                            </Button>
+                                                    <!-- Layout IZQUIERDA: Texto a la izq, imagen a la der -->
+                                                    <StackPanel Orientation="Horizontal"
+                                                               Spacing="10"
+                                                               IsVisible="{Binding TextOnLeft}">
+                                                        <StackPanel VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Title}"
+                                                                     FontFamily="{StaticResource LilitaOne}"
+                                                                     FontSize="18"
+                                                                     Foreground="White"
+                                                                     TextAlignment="Right"/>
+                                                            <TextBlock Text="{Binding Description}"
+                                                                     FontFamily="{StaticResource LilitaOne}"
+                                                                     FontSize="14"
+                                                                     Foreground="White"
+                                                                     TextAlignment="Right"/>
+                                                        </StackPanel>
+                                                        <!-- OJO: Image (Bitmap), no ImagePath -->
+                                                        <Image Source="{Binding Image}"
+                                                              Width="{Binding ImageWidth}"
+                                                              Height="{Binding ImageHeight}"/>
+                                                    </StackPanel>
 
-                            <!-- Tema 4 -->
-                            <Button Background="Transparent"
-                                   BorderThickness="0"
-                                   Cursor="Hand"
-                                   Canvas.Left="{Binding Tema4.PositionX}"
-                                   Canvas.Top="{Binding Tema4.PositionY}"
-                                   Command="{Binding Tema4Command}">
-                                <StackPanel Orientation="Horizontal" Spacing="10"
-                                           IsVisible="{Binding Tema4.TextOnLeft}">
-                                    <StackPanel VerticalAlignment="Center">
-                                        <TextBlock Text="{Binding Tema4.Title}"
-                                                 FontFamily="{StaticResource LilitaOne}"
-                                                 FontSize="18"
-                                                 Foreground="White"
-                                                 TextAlignment="Right"/>
-                                        <TextBlock Text="{Binding Tema4.Description}"
-                                                 FontFamily="{StaticResource LilitaOne}"
-                                                 FontSize="14"
-                                                 Foreground="White"
-                                                 TextAlignment="Right"/>
-                                    </StackPanel>
-                                    <Image Source="{Binding Tema4.Image}"
-                                          Width="{Binding Tema4.ImageWidth}"
-                                          Height="{Binding Tema4.ImageHeight}"/>
-                                </StackPanel>
-                            </Button>
+                                                    <!-- Layout DERECHA: Imagen a la izq, texto a la der -->
+                                                    <StackPanel Orientation="Horizontal"
+                                                               Spacing="10"
+                                                               IsVisible="{Binding TextOnRight}">
+                                                        <Image Source="{Binding Image}"
+                                                              Width="{Binding ImageWidth}"
+                                                              Height="{Binding ImageHeight}"/>
+                                                        <StackPanel VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding Title}"
+                                                                     FontFamily="{StaticResource LilitaOne}"
+                                                                     FontSize="18"
+                                                                     Foreground="White"
+                                                                     TextAlignment="Left"/>
+                                                            <TextBlock Text="{Binding Description}"
+                                                                     FontFamily="{StaticResource LilitaOne}"
+                                                                     FontSize="14"
+                                                                     Foreground="White"
+                                                                     TextAlignment="Left"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
 
-                            <!-- Tema 5 -->
-                            <Button Background="Transparent"
-                                   BorderThickness="0"
-                                   Cursor="Hand"
-                                   Canvas.Left="{Binding Tema5.PositionX}"
-                                   Canvas.Top="{Binding Tema5.PositionY}"
-                                   Command="{Binding Tema5Command}">
-                                <Panel>
-                                    <!-- Layout: Texto a la izquierda, imagen a la derecha -->
-                                    <StackPanel Orientation="Horizontal" Spacing="10"
-                                               IsVisible="{Binding Tema5.TextOnLeft}">
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Tema5.Title}"
-                                                     FontFamily="{StaticResource LilitaOne}"
-                                                     FontSize="18"
-                                                     Foreground="White"
-                                                     TextAlignment="Right"/>
-                                            <TextBlock Text="{Binding Tema5.Description}"
-                                                     FontFamily="{StaticResource LilitaOne}"
-                                                     FontSize="14"
-                                                     Foreground="White"
-                                                     TextAlignment="Right"/>
-                                        </StackPanel>
-                                        <Image Source="{Binding Tema5.Image}"
-                                              Width="{Binding Tema5.ImageWidth}"
-                                              Height="{Binding Tema5.ImageHeight}"/>
-                                    </StackPanel>
-                                    <!-- Layout: Imagen a la izquierda, texto a la derecha -->
-                                    <StackPanel Orientation="Horizontal" Spacing="10"
-                                               IsVisible="{Binding Tema5.TextOnRight}">
-                                        <Image Source="{Binding Tema5.Image}"
-                                              Width="{Binding Tema5.ImageWidth}"
-                                              Height="{Binding Tema5.ImageHeight}"/>
-                                        <StackPanel VerticalAlignment="Center">
-                                            <TextBlock Text="{Binding Tema5.Title}"
-                                                     FontFamily="{StaticResource LilitaOne}"
-                                                     FontSize="18"
-                                                     Foreground="White"
-                                                     TextAlignment="Left"/>
-                                            <TextBlock Text="{Binding Tema5.Description}"
-                                                     FontFamily="{StaticResource LilitaOne}"
-                                                     FontSize="14"
-                                                     Foreground="White"
-                                                     TextAlignment="Left"/>
-                                        </StackPanel>
-                                    </StackPanel>
-                                </Panel>
-                            </Button>
+                                                </Panel>
+                                            </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
                         </Canvas>
                     </Border>
