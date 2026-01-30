@@ -2,14 +2,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Quibee.ViewModels"
              xmlns:models="using:Quibee.Models"
+             xmlns:converters="using:Quibee.Converters"
              x:Class="Quibee.Views.LessonsMapView"
-             x:DataType="vm:LessonsMapViewModel">
+             x:DataType="vm:LessonsMapViewModel"
+             x:Name="Root">
+
+    <UserControl.Resources>
+        <converters:EdgeToPathGeometryConverter x:Key="EdgeToPathConverter"/>
+    </UserControl.Resources>
 
     <Border Background="#311B42">
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" 
+        <ScrollViewer HorizontalScrollBarVisibility="Disabled" 
                      VerticalScrollBarVisibility="Auto">
-            <Viewbox Stretch="Uniform">
-                <Grid Width="1200" Height="700">
+            <Grid Width="1200" MinHeight="{Binding CanvasHeight}">
                     
                     <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
                     <StackPanel Orientation="Horizontal"
@@ -77,67 +82,40 @@
 
                     <!-- CONTENEDOR DEL MAPA DE LECCIONES -->
                     <Border HorizontalAlignment="Center" 
-                            VerticalAlignment="Center"
-                            Margin="0,0,0,0">
+                            VerticalAlignment="Top">
                         <!-- MAPA DE TEMAS CON CANVAS PARA POSICIONAMIENTO ABSOLUTO -->
-                        <Canvas Width="1200" Height="700">
+                        <Canvas Width="1200" Height="{Binding CanvasHeight}">
                         
-                            <!-- LÍNEAS CURVAS CONECTORAS (por ahora hardcodeadas según grado) -->
-                            <!-- TODO: Hacer dinámicas en el futuro -->
-                        
-                            <!-- Curva Tema 1 → Tema 2 -->
-                            <Path Stroke="White" StrokeThickness="3" StrokeDashArray="5,5">
-                                <Path.Data>
-                                    <PathGeometry>
-                                        <PathFigure StartPoint="950,170"
-                                                    IsClosed="False">
-                                            <BezierSegment Point1="870,320" Point2="820,220" Point3="770,270"/>
-                                        </PathFigure>
-                                    </PathGeometry>
-                                </Path.Data>
-                            </Path>
-                            
-                            <!-- Curva Tema 2 → Tema 3 -->
-                            <Path Stroke="White" StrokeThickness="3" StrokeDashArray="5,5">
-                                <Path.Data>
-                                    <PathGeometry>
-                                        <PathFigure StartPoint="720,300"
-                                                    IsClosed="False">
-                                            <BezierSegment Point1="650,340" Point2="720,400" Point3="600,450"/>
-                                        </PathFigure>
-                                    </PathGeometry>
-                                </Path.Data>
-                            </Path>
-                            
-                            <!-- Curva Tema 3 → Tema 4 -->
-                            <Path Stroke="White" StrokeThickness="3" StrokeDashArray="5,5">
-                                <Path.Data>
-                                    <PathGeometry>
-                                        <PathFigure StartPoint="600,450"
-                                                    IsClosed="False">
-                                            <BezierSegment Point1="560,540" Point2="480,350" Point3="420,380"/>
-                                        </PathFigure>
-                                    </PathGeometry>
-                                </Path.Data>
-                            </Path>
-                            
-                            <!-- Curva Tema 4 → Tema 5 -->
-                            <Path Stroke="White" StrokeThickness="3" StrokeDashArray="5,5">
-                                <Path.Data>
-                                    <PathGeometry>
-                                        <PathFigure StartPoint="420,380"
-                                                    IsClosed="False">
-                                            <BezierSegment Point1="370,420" Point2="330,480" Point3="330,540"/>
-                                        </PathFigure>
-                                    </PathGeometry>
-                                </Path.Data>
-                            </Path>
+                            <!-- ===== LÍNEAS CONECTORAS DINÁMICAS (ItemsControl data-driven) ===== -->
+                            <!-- Se renderizan ANTES de los nodos para que queden debajo -->
+                            <ItemsControl ItemsSource="{Binding Edges}">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <Canvas Width="1200" Height="{Binding DataContext.CanvasHeight, ElementName=Root}"/>
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate x:DataType="models:TemaEdge">
+                                        <Path Stroke="White" 
+                                              StrokeThickness="3" 
+                                              StrokeDashArray="5,5">
+                                            <Path.Data>
+                                                <MultiBinding Converter="{StaticResource EdgeToPathConverter}">
+                                                    <Binding Path="."/>
+                                                    <Binding Path="$parent[UserControl].DataContext"/>
+                                                </MultiBinding>
+                                            </Path.Data>
+                                        </Path>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
 
                             <!-- ===== NODOS DINÁMICOS (ItemsControl data-driven) ===== -->
                             <ItemsControl ItemsSource="{Binding Nodes}">
                                 <ItemsControl.ItemsPanel>
                                     <ItemsPanelTemplate>
-                                        <Canvas Width="1200" Height="700"/>
+                                        <Canvas Width="1200" Height="{Binding DataContext.CanvasHeight, ElementName=Root}"/>
                                     </ItemsPanelTemplate>
                                 </ItemsControl.ItemsPanel>
 
@@ -205,8 +183,7 @@
                         </Canvas>
                     </Border>
 
-                </Grid>
-            </Viewbox>
+            </Grid>
         </ScrollViewer>
     </Border>
 

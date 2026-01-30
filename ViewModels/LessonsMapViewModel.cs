@@ -32,16 +32,8 @@ public class LessonsMapViewModel : ViewModelBase
         _topicService = topicService;
 
         // Inicializar colecciones
-        Themes = new ObservableCollection<ThemeData>();
         Nodes = new ObservableCollection<ThemeData>();
         Edges = new ObservableCollection<TemaEdge>();
-
-        // Comandos para cada tema (DEPRECATED - se mantendrán por compatibilidad temporal)
-        Tema1Command = new RelayCommand(OnTema1Click);
-        Tema2Command = new RelayCommand(OnTema2Click);
-        Tema3Command = new RelayCommand(OnTema3Click);
-        Tema4Command = new RelayCommand(OnTema4Click);
-        Tema5Command = new RelayCommand(OnTema5Click);
 
         // Navegación
         InicioCommand = new RelayCommand(OnInicio);
@@ -52,27 +44,22 @@ public class LessonsMapViewModel : ViewModelBase
         _ = LoadThemesFromDatabaseAsync();
     }
 
-    // Colección de temas dinámicos (DEPRECATED - usar Nodes en su lugar)
-    public ObservableCollection<ThemeData> Themes { get; }
-    
     // ===== NUEVAS COLECCIONES DATA-DRIVEN =====
     /// <summary>
     /// Colección de nodos (temas) para renderizado dinámico con ItemsControl
     /// </summary>
     public ObservableCollection<ThemeData> Nodes { get; }
-    
+
     /// <summary>
     /// Colección de conexiones entre nodos para renderizado dinámico
     /// </summary>
     public ObservableCollection<TemaEdge> Edges { get; }
-    
-    // Propiedades individuales para acceso directo en XAML (DEPRECATED - usar Nodes)
-    public ThemeData Tema1 => Themes.Count > 0 ? Themes[0] : null!;
-    public ThemeData Tema2 => Themes.Count > 1 ? Themes[1] : null!;
-    public ThemeData Tema3 => Themes.Count > 2 ? Themes[2] : null!;
-    public ThemeData Tema4 => Themes.Count > 3 ? Themes[3] : null!;
-    public ThemeData Tema5 => Themes.Count > 4 ? Themes[4] : null!;
 
+    /// <summary>
+    /// Alto del canvas en base a la posición y tamaño de los nodos
+    /// </summary>
+    public double CanvasHeight { get; private set; } = 700;
+    
     // Propiedades para mostrar el grado
     public string TituloLecciones => $"Lecciones: {GradoTexto}";
     
@@ -83,13 +70,6 @@ public class LessonsMapViewModel : ViewModelBase
         3 => "Tercer grado",
         _ => "Primer grado"
     };
-
-    // Comandos de temas
-    public ICommand Tema1Command { get; }
-    public ICommand Tema2Command { get; }
-    public ICommand Tema3Command { get; }
-    public ICommand Tema4Command { get; }
-    public ICommand Tema5Command { get; }
 
     // Comandos de navegación
     public ICommand InicioCommand { get; }
@@ -103,6 +83,8 @@ public class LessonsMapViewModel : ViewModelBase
     {
         try
         {
+            Console.WriteLine($"🔍 DEBUG: ===== LoadThemesFromDatabaseAsync INICIADO =====");
+            Console.WriteLine($"🔍 DEBUG: Nodes.Count ANTES de Clear = {Nodes.Count}");
             Console.WriteLine($"🔍 DEBUG: Cargando temas para grado {_gradeLevel}...");
             
             // Cargar temas desde BD
@@ -143,19 +125,8 @@ public class LessonsMapViewModel : ViewModelBase
                 Edges.Add(new TemaEdge(fromNode.NodeId, toNode.NodeId));
             }
             
-            // ===== Actualizar colección THEMES (deprecated, para compatibilidad) =====
-            Themes.Clear();
-            foreach (var theme in themesData)
-            {
-                Themes.Add(theme);
-            }
+            RecalculateCanvasHeight();
             
-            // Notificar que las propiedades individuales han cambiado
-            OnPropertyChanged(nameof(Tema1));
-            OnPropertyChanged(nameof(Tema2));
-            OnPropertyChanged(nameof(Tema3));
-            OnPropertyChanged(nameof(Tema4));
-            OnPropertyChanged(nameof(Tema5));
         }
         catch (Exception ex)
         {
@@ -185,19 +156,9 @@ public class LessonsMapViewModel : ViewModelBase
                 var toNode = Nodes[i + 1];
                 Edges.Add(new TemaEdge(fromNode.NodeId, toNode.NodeId));
             }
+
+            RecalculateCanvasHeight();
             
-            // Llenar Themes (deprecated)
-            foreach (var theme in fallbackThemes)
-            {
-                Themes.Add(theme);
-            }
-            
-            // Notificar que las propiedades individuales han cambiado
-            OnPropertyChanged(nameof(Tema1));
-            OnPropertyChanged(nameof(Tema2));
-            OnPropertyChanged(nameof(Tema3));
-            OnPropertyChanged(nameof(Tema4));
-            OnPropertyChanged(nameof(Tema5));
         }
     }
 
@@ -250,6 +211,17 @@ public class LessonsMapViewModel : ViewModelBase
     {
         _nodeCache.TryGetValue(nodeId, out var node);
         return node;
+    }
+
+    private void RecalculateCanvasHeight()
+    {
+        const double bottomPadding = 200;
+        var maxBottom = Nodes.Count == 0
+            ? 700
+            : Nodes.Max(n => n.PositionY + n.ImageHeight);
+
+        CanvasHeight = Math.Max(700, maxBottom + bottomPadding);
+        OnPropertyChanged(nameof(CanvasHeight));
     }
 
     /// <summary>
@@ -505,31 +477,6 @@ public class LessonsMapViewModel : ViewModelBase
         }
     }
 
-    // ===== DEPRECATED: Handlers individuales (mantener por compatibilidad temporal) =====
-    private void OnTema1Click()
-    {
-        System.Console.WriteLine($"🎮 Abriendo Tema 1 para estudiante {_studentId}");
-        // TODO: Navegar a las lecciones del Tema 1
-    }
-
-    private void OnTema2Click()
-    {
-        System.Console.WriteLine($"🎮 Abriendo Tema 2 para estudiante {_studentId}");
-        
-        // Navegar según el grado
-        if (_gradeLevel == 1)
-        {
-            // Grado 1, Tema 2: Relacionemos números y objetos
-            var lessonData = CreateLesson_G1T2();
-            _mainWindowViewModel?.NavigateToGenericLesson(lessonData);
-        }
-        else
-        {
-            // TODO: Implementar lecciones para otros grados
-            System.Console.WriteLine($"⚠️ Lección no implementada para grado {_gradeLevel}, tema 2");
-        }
-    }
-
     /// <summary>
     /// Crea los datos para la lección Grado 1, Tema 2
     /// </summary>
@@ -583,24 +530,6 @@ public class LessonsMapViewModel : ViewModelBase
                 }
             }
         };
-    }
-
-    private void OnTema3Click()
-    {
-        System.Console.WriteLine($"🎮 Abriendo Tema 3 para estudiante {_studentId}");
-        // TODO: Navegar a las lecciones del Tema 3
-    }
-
-    private void OnTema4Click()
-    {
-        System.Console.WriteLine($"🎮 Abriendo Tema 4 para estudiante {_studentId}");
-        // TODO: Navegar a las lecciones del Tema 4
-    }
-
-    private void OnTema5Click()
-    {
-        System.Console.WriteLine($"🎮 Abriendo Tema 5 para estudiante {_studentId}");
-        // TODO: Navegar a las lecciones del Tema 5
     }
 
     // Handlers de navegación
