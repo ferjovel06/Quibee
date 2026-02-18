@@ -26,10 +26,71 @@ public class TopicService
     public async Task<List<Topic>> GetTopicsByLevelAsync(int levelNumber)
     {
         return await _context.Topics
+            .AsNoTracking()
             .Include(t => t.Level)
+            .Include(t => t.Lessons)
             .Where(t => t.Level != null && t.Level.LevelNumber == levelNumber && t.IsActive)
             .OrderBy(t => t.OrderIndex)
             .ToListAsync();
+    }
+
+    /// <summary>
+    /// Obtiene el porcentaje de progreso del estudiante para un nivel.
+    /// </summary>
+    public async Task<int?> GetStudentLevelProgressPercentageAsync(int studentId, int levelNumber)
+    {
+        var levelId = await _context.Levels
+            .AsNoTracking()
+            .Where(l => l.LevelNumber == levelNumber)
+            .Select(l => l.IdLevel)
+            .FirstOrDefaultAsync();
+
+        if (levelId == 0)
+        {
+            return null;
+        }
+
+        var percentage = await _context.StudentLevelProgress
+            .AsNoTracking()
+            .Where(p => p.IdStudent == studentId && p.IdLevel == levelId)
+            .Select(p => p.CompletionPercentage)
+            .FirstOrDefaultAsync();
+
+        if (!percentage.HasValue)
+        {
+            return null;
+        }
+
+        var normalized = Math.Clamp((int)Math.Round(percentage.Value), 0, 100);
+        return normalized;
+    }
+
+    /// <summary>
+    /// Obtiene progreso por lección para un estudiante.
+    /// Como la tabla no tiene porcentaje por lección, se mapea is_completed a 100/0.
+    /// </summary>
+    public async Task<Dictionary<int, int>> GetStudentLessonProgressByLessonIdsAsync(
+        int studentId,
+        IReadOnlyCollection<int> lessonIds)
+    {
+        if (lessonIds.Count == 0)
+        {
+            return new Dictionary<int, int>();
+        }
+
+        var progressRows = await _context.StudentLessonProgress
+            .AsNoTracking()
+            .Where(p => p.IdStudent == studentId && lessonIds.Contains(p.IdLesson))
+            .Select(p => new { p.IdLesson, p.IsCompleted })
+            .ToListAsync();
+
+        var progressByLesson = lessonIds.ToDictionary(id => id, _ => 0);
+        foreach (var row in progressRows)
+        {
+            progressByLesson[row.IdLesson] = row.IsCompleted ? 100 : 0;
+        }
+
+        return progressByLesson;
     }
 
     /// <summary>
@@ -38,6 +99,7 @@ public class TopicService
     public async Task<Topic?> GetTopicByIdAsync(int topicId)
     {
         return await _context.Topics
+            .AsNoTracking()
             .Include(t => t.Level)
             .Include(t => t.Lessons)
             .FirstOrDefaultAsync(t => t.IdTopic == topicId);

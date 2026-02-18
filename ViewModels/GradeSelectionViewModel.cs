@@ -1,17 +1,21 @@
 using System.Windows.Input;
-using Quibee.Models;
+using System.Threading.Tasks;
+using Quibee.Services;
+using Quibee;
 
 namespace Quibee.ViewModels
 {
     public class GradeSelectionViewModel : ViewModelBase
     {
         private readonly MainWindowViewModel? _mainWindowViewModel;
-        private readonly UserRegistrationData? _userData;
+        private readonly int _studentId;
+        private readonly StudentService _studentService;
 
-        public GradeSelectionViewModel(MainWindowViewModel? mainWindowViewModel = null, UserRegistrationData? userData = null)
+        public GradeSelectionViewModel(MainWindowViewModel? mainWindowViewModel = null, int studentId = 0)
         {
             _mainWindowViewModel = mainWindowViewModel;
-            _userData = userData;
+            _studentId = studentId;
+            _studentService = new StudentService(ServiceLocator.GetDbContext());
             SelectFirstGradeCommand = new RelayCommand(SelectFirstGrade);
             SelectSecondGradeCommand = new RelayCommand(SelectSecondGrade);
             SelectThirdGradeCommand = new RelayCommand(SelectThirdGrade);
@@ -23,28 +27,30 @@ namespace Quibee.ViewModels
 
         private void SelectFirstGrade()
         {
-            if (_userData != null)
-            {
-                _userData.Grado = "Primer grado";
-                _mainWindowViewModel?.NavigateToRegistrationConfirmation(_userData);
-            }
+            _ = SelectLevelAsync(1);
         }
 
         private void SelectSecondGrade()
         {
-            if (_userData != null)
-            {
-                _userData.Grado = "Segundo grado";
-                _mainWindowViewModel?.NavigateToRegistrationConfirmation(_userData);
-            }
+            _ = SelectLevelAsync(2);
         }
 
         private void SelectThirdGrade()
         {
-            if (_userData != null)
+            _ = SelectLevelAsync(3);
+        }
+
+        private async Task SelectLevelAsync(int levelNumber)
+        {
+            if (_studentId <= 0)
             {
-                _userData.Grado = "Tercer grado";
-                _mainWindowViewModel?.NavigateToRegistrationConfirmation(_userData);
+                return;
+            }
+
+            var updated = await _studentService.UpdateLevelNumberAsync(_studentId, levelNumber);
+            if (updated)
+            {
+                _mainWindowViewModel?.NavigateToLessonsMap(_studentId, levelNumber);
             }
         }
     }

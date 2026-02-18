@@ -105,9 +105,33 @@ namespace Quibee.Models
         public double RotationAngle { get; set; } = 0;
 
         /// <summary>
+        /// Estado visual del nodo en el mapa: completed, current o locked.
+        /// </summary>
+        public string NodeState { get; set; } = "locked";
+
+        public bool IsCompleted => string.Equals(NodeState, "completed", StringComparison.OrdinalIgnoreCase);
+        public bool IsCurrent => string.Equals(NodeState, "current", StringComparison.OrdinalIgnoreCase);
+        public bool IsLocked => string.Equals(NodeState, "locked", StringComparison.OrdinalIgnoreCase);
+
+        /// <summary>
         /// Comando que se ejecuta al hacer clic en el tema
         /// </summary>
         public ICommand? Command { get; set; }
+
+        /// <summary>
+        /// Lección principal asociada al nodo.
+        /// </summary>
+        public int LessonId { get; set; }
+
+        /// <summary>
+        /// Progreso de la lección (0-100).
+        /// </summary>
+        public int LessonProgressPercentage { get; set; }
+
+        /// <summary>
+        /// Ancho visual para la barra de progreso del tooltip.
+        /// </summary>
+        public double LessonProgressWidth => 210 * (Math.Clamp(LessonProgressPercentage, 0, 100) / 100.0);
 
         /// <summary>
         /// ID único del nodo (usado para referencias en edges)

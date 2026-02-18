@@ -41,8 +41,8 @@ public class StudentService
             // Mapear género de español a inglés
             var gender = MapGender(userData.Genero);
 
-            // Extraer número de grado
-            var gradeLevel = ExtractGradeLevel(userData.Grado);
+            // Extraer número de nivel
+            var levelNumber = ExtractLevelNumber(userData.Nivel);
 
             // Crear entidad Student
             var student = new Student
@@ -51,7 +51,7 @@ public class StudentService
                 FirstName = userData.Nombres,
                 LastName = userData.Apellidos,
                 DateOfBirth = userData.FechaNacimiento ?? DateTime.Now,
-                GradeLevel = gradeLevel,
+                LevelNumber = levelNumber,
                 Gender = gender,
                 AccessCode = userData.ClaveAcceso,
                 IsActive = true,
@@ -136,6 +136,31 @@ public class StudentService
             _context.Students.Any(s => s.Username == username));
     }
 
+    /// <summary>
+    /// Actualiza el nivel de un estudiante ya registrado.
+    /// </summary>
+    public async Task<bool> UpdateLevelNumberAsync(int studentId, int levelNumber)
+    {
+        try
+        {
+            var student = await _context.Students.FindAsync(studentId);
+            if (student == null)
+            {
+                return false;
+            }
+
+            student.LevelNumber = levelNumber;
+            student.UpdatedAt = DateTime.Now;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error al actualizar nivel: {ex.Message}");
+            return false;
+        }
+    }
+
     // ===== MÉTODOS PRIVADOS DE UTILIDAD =====
 
     private async Task CreateInitialStatsAsync(int studentId)
@@ -177,11 +202,11 @@ public class StudentService
         };
     }
 
-    private int ExtractGradeLevel(string grado)
+    private int ExtractLevelNumber(string nivel)
     {
-        if (grado.Contains("Primer") || grado.Contains("1")) return 1;
-        if (grado.Contains("Segundo") || grado.Contains("2")) return 2;
-        if (grado.Contains("Tercer") || grado.Contains("3")) return 3;
+        if (nivel.Contains("Primer") || nivel.Contains("1")) return 1;
+        if (nivel.Contains("Segundo") || nivel.Contains("2")) return 2;
+        if (nivel.Contains("Tercer") || nivel.Contains("3")) return 3;
         return 1; // Default
     }
 

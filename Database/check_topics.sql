@@ -5,9 +5,9 @@ USE quibee_db;
 SELECT COUNT(*) as 'Total Temas Nivel 1' FROM TOPIC WHERE id_level = 1;
 
 -- Mostrar todos los temas
-SELECT id_topic, order_index, topic_name, position_x, position_y 
+SELECT id_topic, order_index, topic_name
 FROM TOPIC 
-WHERE id_level = 1 
+WHERE id_level = 1
 ORDER BY order_index;
 
 -- Buscar duplicados por order_index

@@ -39,24 +39,24 @@ public class DataSeederService
             new Level
             {
                 LevelNumber = 1,
-                LevelName = "Primer Grado",
-                Description = "Nivel básico de matemáticas para primer grado",
+                LevelName = "Primer Nivel",
+                Description = "Nivel básico de matemáticas para primer nivel",
                 Icon = "avares://Quibee/Assets/Images/Grade1Icon.png",
                 IsActive = true
             },
             new Level
             {
                 LevelNumber = 2,
-                LevelName = "Segundo Grado",
-                Description = "Nivel intermedio de matemáticas para segundo grado",
+                LevelName = "Segundo Nivel",
+                Description = "Nivel intermedio de matemáticas para segundo nivel",
                 Icon = "avares://Quibee/Assets/Images/Grade2Icon.png",
                 IsActive = true
             },
             new Level
             {
                 LevelNumber = 3,
-                LevelName = "Tercer Grado",
-                Description = "Nivel avanzado de matemáticas para tercer grado",
+                LevelName = "Tercer Nivel",
+                Description = "Nivel avanzado de matemáticas para tercer nivel",
                 Icon = "avares://Quibee/Assets/Images/Grade3Icon.png",
                 IsActive = true
             }

@@ -30,17 +30,19 @@ namespace Quibee.ViewModels
 
         public string Genero => _userData.Genero;
 
-        public string Grado => _userData.Grado;
+        public string Nivel => _userData.Nivel;
 
-        public string GradoNumero
+        public string NivelNumero
         {
             get
             {
-                if (_userData.Grado.Contains("Primer"))
+                if (string.IsNullOrWhiteSpace(_userData.Nivel))
+                    return "-";
+                if (_userData.Nivel.Contains("Primer"))
                     return "1";
-                else if (_userData.Grado.Contains("Segundo"))
+                else if (_userData.Nivel.Contains("Segundo"))
                     return "2";
-                else if (_userData.Grado.Contains("Tercer"))
+                else if (_userData.Nivel.Contains("Tercer"))
                     return "3";
                 return "1"; // Default
             }
@@ -76,11 +78,11 @@ namespace Quibee.ViewModels
                 {
                     Console.WriteLine($"✅ ¡Registro completado exitosamente!");
                     Console.WriteLine($"   👤 Usuario: {student.Username}");
-                    Console.WriteLine($"   🎓 Grado: {student.GradeLevel}°");
+                    Console.WriteLine($"   🎓 Nivel: {student.LevelNumber}°");
                     Console.WriteLine($"   🔑 ID: {student.IdStudent}");
                     
-                    // ✅ Navegar al mapa de lecciones con el estudiante logueado
-                    _mainWindowViewModel?.NavigateToLessonsMap(student.IdStudent, student.GradeLevel);
+                    // Navegar a la selección de nivel después del registro.
+                    _mainWindowViewModel?.NavigateToGradeSelection(student.IdStudent);
                 }
                 else
                 {

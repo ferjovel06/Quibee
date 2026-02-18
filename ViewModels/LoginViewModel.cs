@@ -102,7 +102,7 @@ namespace Quibee.ViewModels
                     Console.WriteLine($"✅ Login exitoso! Bienvenido {student.FirstName}");
                     
                     // ✅ Navegar al mapa de lecciones
-                    _mainWindowViewModel?.NavigateToLessonsMap(student.IdStudent, student.GradeLevel);
+                    _mainWindowViewModel?.NavigateToLessonsMap(student.IdStudent, student.LevelNumber);
                 }
                 else
                 {

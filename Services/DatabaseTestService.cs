@@ -63,7 +63,7 @@ public class DatabaseTestService
                 Apellidos = "Prueba",
                 FechaNacimiento = new DateTime(2015, 5, 10),
                 Genero = "Masculino",
-                Grado = "Tercer grado",
+                Nivel = "Tercer nivel",
                 ClaveAcceso = "1234"
             };
 
@@ -75,7 +75,7 @@ public class DatabaseTestService
                 Console.WriteLine("✅ Estudiante de prueba creado correctamente!");
                 Console.WriteLine($"   👤 Usuario: {student.Username}");
                 Console.WriteLine($"   📛 Nombre: {student.FirstName} {student.LastName}");
-                Console.WriteLine($"   🎓 Grado: {student.GradeLevel}°");
+                Console.WriteLine($"   🎓 Nivel: {student.LevelNumber}°");
                 Console.WriteLine($"   🔑 ID: {student.IdStudent}");
             }
         }

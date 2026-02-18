@@ -2,189 +2,251 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Quibee.ViewModels"
              xmlns:models="using:Quibee.Models"
-             xmlns:converters="using:Quibee.Converters"
              x:Class="Quibee.Views.LessonsMapView"
              x:DataType="vm:LessonsMapViewModel"
              x:Name="Root">
 
-    <UserControl.Resources>
-        <converters:EdgeToPathGeometryConverter x:Key="EdgeToPathConverter"/>
-    </UserControl.Resources>
+    <Grid ColumnDefinitions="230,*" Background="#1B2352">
+        <Border Grid.Column="0" Background="#7CDAF3">
+            <Grid RowDefinitions="Auto,*">
+                <Image Grid.Row="0"
+                       Source="avares://Quibee/Assets/Images/QbitLogo.png"
+                       Width="112"
+                       Height="72"
+                       HorizontalAlignment="Center"
+                       Margin="0,16,0,10"/>
 
-    <Border Background="#311B42">
-        <ScrollViewer HorizontalScrollBarVisibility="Disabled" 
-                     VerticalScrollBarVisibility="Auto">
-            <Grid Width="1200" MinHeight="{Binding CanvasHeight}">
-                    
-                    <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
-                    <StackPanel Orientation="Horizontal"
-                              HorizontalAlignment="Right"
-                              VerticalAlignment="Top"
-                              Margin="0,30,0,0"
-                              Spacing="30">
-                        
-                        <!-- Botón Inicio -->
+                <StackPanel Grid.Row="1" Margin="0,8,0,0" HorizontalAlignment="Stretch">
+                    <Border Background="#311B42"
+                            CornerRadius="0,30,30,0"
+                            Margin="0,2,10,8">
                         <Button Background="Transparent"
-                               BorderThickness="0"
-                               Cursor="Hand"
-                               Command="{Binding InicioCommand}">
-                            <TextBlock Text="Inicio"
-                                     FontFamily="{StaticResource LilitaOne}"
-                                     FontSize="24"
-                                     Foreground="White"/>
+                                BorderThickness="0"
+                                Padding="16,12"
+                                HorizontalAlignment="Stretch"
+                                HorizontalContentAlignment="Right">
+                            <StackPanel Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        Spacing="12">
+                                <TextBlock Text="Aprender"
+                                           FontFamily="{StaticResource Poppins}"
+                                           FontWeight="SemiBold"
+                                           FontSize="18"
+                                           Foreground="#7CDAF3"
+                                           VerticalAlignment="Center"/>
+                                <Image Source="avares://Quibee/Assets/Images/Icons/StarLight.png"
+                                       Width="18"
+                                       Height="18"
+                                       VerticalAlignment="Center"/>
+                            </StackPanel>
                         </Button>
-
-                        <!-- Botón Lecciones (activo) -->
-                        <Button Background="White"
-                               BorderThickness="0"
-                               CornerRadius="20"
-                               Padding="30,10"
-                               Cursor="Hand">
-                            <TextBlock Text="Lecciones"
-                                     FontFamily="{StaticResource LilitaOne}"
-                                     FontSize="24"
-                                     Foreground="#311B42"/>
-                        </Button>
-
-                        <!-- Botón Manual -->
-                        <Button Background="Transparent"
-                               BorderThickness="0"
-                               Cursor="Hand"
-                               Command="{Binding ManualCommand}">
-                            <TextBlock Text="Manual"
-                                     FontFamily="{StaticResource LilitaOne}"
-                                     FontSize="24"
-                                     Foreground="White"/>
-                        </Button>
-
-                        <!-- Botón Usuario -->
-                        <Button Background="#D51A52"
-                               BorderThickness="0"
-                               CornerRadius="20"
-                               Padding="30,10"
-                               Cursor="Hand"
-                               Command="{Binding UsuarioCommand}">
-                            <TextBlock Text="Usuario"
-                                     FontFamily="{StaticResource LilitaOne}"
-                                     FontSize="24"
-                                     Foreground="White"/>
-                        </Button>
-                    </StackPanel>
-
-                    <!-- TÍTULO -->
-                    <TextBlock Text="{Binding TituloLecciones}"
-                             FontFamily="{StaticResource LilitaOne}"
-                             FontSize="38"
-                             Foreground="White"
-                             HorizontalAlignment="Left"
-                             VerticalAlignment="Top"
-                             Margin="0,80,0,0"/>
-
-                    <!-- CONTENEDOR DEL MAPA DE LECCIONES -->
-                    <Border HorizontalAlignment="Center" 
-                            VerticalAlignment="Top">
-                        <!-- MAPA DE TEMAS CON CANVAS PARA POSICIONAMIENTO ABSOLUTO -->
-                        <Canvas Width="1200" Height="{Binding CanvasHeight}">
-                        
-                            <!-- ===== LÍNEAS CONECTORAS DINÁMICAS (ItemsControl data-driven) ===== -->
-                            <!-- Se renderizan ANTES de los nodos para que queden debajo -->
-                            <ItemsControl ItemsSource="{Binding Edges}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <Canvas Width="1200" Height="{Binding DataContext.CanvasHeight, ElementName=Root}"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="models:TemaEdge">
-                                        <Path Stroke="White" 
-                                              StrokeThickness="3" 
-                                              StrokeDashArray="5,5">
-                                            <Path.Data>
-                                                <MultiBinding Converter="{StaticResource EdgeToPathConverter}">
-                                                    <Binding Path="."/>
-                                                    <Binding Path="$parent[UserControl].DataContext"/>
-                                                </MultiBinding>
-                                            </Path.Data>
-                                        </Path>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                            <!-- ===== NODOS DINÁMICOS (ItemsControl data-driven) ===== -->
-                            <ItemsControl ItemsSource="{Binding Nodes}">
-                                <ItemsControl.ItemsPanel>
-                                    <ItemsPanelTemplate>
-                                        <Canvas Width="1200" Height="{Binding DataContext.CanvasHeight, ElementName=Root}"/>
-                                    </ItemsPanelTemplate>
-                                </ItemsControl.ItemsPanel>
-
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate x:DataType="models:ThemeData">
-                                        <!-- Usar Button con RenderTransform para posicionar -->
-                                        <Button Background="Transparent"
-                                               BorderThickness="0"
-                                               Cursor="Hand"
-                                               Command="{Binding Command}">
-                                            <Button.RenderTransform>
-                                                <TranslateTransform X="{Binding PositionX}" Y="{Binding PositionY}"/>
-                                            </Button.RenderTransform>
-                                            <Panel>
-
-                                                    <!-- Layout IZQUIERDA: Texto a la izq, imagen a la der -->
-                                                    <StackPanel Orientation="Horizontal"
-                                                               Spacing="10"
-                                                               IsVisible="{Binding TextOnLeft}">
-                                                        <StackPanel VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding Title}"
-                                                                     FontFamily="{StaticResource LilitaOne}"
-                                                                     FontSize="18"
-                                                                     Foreground="White"
-                                                                     TextAlignment="Right"/>
-                                                            <TextBlock Text="{Binding Description}"
-                                                                     FontFamily="{StaticResource LilitaOne}"
-                                                                     FontSize="14"
-                                                                     Foreground="White"
-                                                                     TextAlignment="Right"/>
-                                                        </StackPanel>
-                                                        <!-- OJO: Image (Bitmap), no ImagePath -->
-                                                        <Image Source="{Binding Image}"
-                                                              Width="{Binding ImageWidth}"
-                                                              Height="{Binding ImageHeight}"/>
-                                                    </StackPanel>
-
-                                                    <!-- Layout DERECHA: Imagen a la izq, texto a la der -->
-                                                    <StackPanel Orientation="Horizontal"
-                                                               Spacing="10"
-                                                               IsVisible="{Binding TextOnRight}">
-                                                        <Image Source="{Binding Image}"
-                                                              Width="{Binding ImageWidth}"
-                                                              Height="{Binding ImageHeight}"/>
-                                                        <StackPanel VerticalAlignment="Center">
-                                                            <TextBlock Text="{Binding Title}"
-                                                                     FontFamily="{StaticResource LilitaOne}"
-                                                                     FontSize="18"
-                                                                     Foreground="White"
-                                                                     TextAlignment="Left"/>
-                                                            <TextBlock Text="{Binding Description}"
-                                                                     FontFamily="{StaticResource LilitaOne}"
-                                                                     FontSize="14"
-                                                                     Foreground="White"
-                                                                     TextAlignment="Left"/>
-                                                        </StackPanel>
-                                                    </StackPanel>
-
-                                                </Panel>
-                                            </Button>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-
-                        </Canvas>
                     </Border>
 
-            </Grid>
-        </ScrollViewer>
-    </Border>
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Margin="0,2,10,2"
+                            Padding="16,12"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Right">
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Spacing="12">
+                            <TextBlock Text="Logros"
+                                       FontFamily="{StaticResource Poppins}"
+                                       FontWeight="SemiBold"
+                                       FontSize="18"
+                                       Foreground="#1A214A"
+                                       VerticalAlignment="Center"/>
+                            <Image Source="avares://Quibee/Assets/Images/Icons/TrophyDark.png"
+                                   Width="18"
+                                   Height="18"
+                                   VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
 
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Margin="0,2,10,2"
+                            Padding="16,12"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Right">
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Spacing="12">
+                            <TextBlock Text="Progreso"
+                                       FontFamily="{StaticResource Poppins}"
+                                       FontWeight="SemiBold"
+                                       FontSize="18"
+                                       Foreground="#1A214A"
+                                       VerticalAlignment="Center"/>
+                            <Image Source="avares://Quibee/Assets/Images/Icons/ChartDark.png"
+                                   Width="18"
+                                   Height="18"
+                                   VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+
+                    <Button Background="Transparent"
+                            BorderThickness="0"
+                            Margin="0,2,10,2"
+                            Padding="16,12"
+                            HorizontalAlignment="Stretch"
+                            HorizontalContentAlignment="Right">
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Spacing="12">
+                            <TextBlock Text="Desafío"
+                                       FontFamily="{StaticResource Poppins}"
+                                       FontWeight="SemiBold"
+                                       FontSize="18"
+                                       Foreground="#1A214A"
+                                       VerticalAlignment="Center"/>
+                            <Image Source="avares://Quibee/Assets/Images/Icons/ProfileDark.png"
+                                   Width="18"
+                                   Height="18"
+                                   VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Column="1" RowDefinitions="Auto,*" Margin="24,16,24,16">
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto">
+                <Border Grid.Column="0"
+                        Background="#AE84D5"
+                        CornerRadius="18"
+                        Padding="16,10"
+                        Margin="0,0,18,14">
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="{Binding TituloLecciones}"
+                                   FontFamily="{StaticResource LilitaOne}"
+                                   FontSize="32"
+                                   Foreground="#311B42"/>
+                        <TextBlock Text="{Binding LevelDescription}"
+                                   FontFamily="{StaticResource Poppins}"
+                                   FontWeight="SemiBold"
+                                   FontSize="14"
+                                   Foreground="#311B42"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Button Grid.Column="1"
+                        Background="Transparent"
+                        BorderThickness="0"
+                        Command="{Binding InicioCommand}"
+                        VerticalAlignment="Center">
+                    <TextBlock Text="✖"
+                               FontFamily="{StaticResource LilitaOne}"
+                               FontSize="34"
+                               Foreground="#FF6A67"/>
+                </Button>
+            </Grid>
+
+            <Border Grid.Row="1"
+                    Background="#232D63"
+                    CornerRadius="20"
+                    Padding="0,0,0,0">
+                <ScrollViewer Name="MapScrollViewer"
+                              Margin="10,10,10,10"
+                              VerticalScrollBarVisibility="Visible"
+                              HorizontalScrollBarVisibility="Disabled"
+                              FlowDirection="RightToLeft">
+                    <Canvas Width="980"
+                            Height="{Binding CanvasHeight}"
+                            Margin="24,0,20,0"
+                            FlowDirection="LeftToRight">
+                        <ItemsControl ItemsSource="{Binding Nodes}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <Canvas Width="980" Height="{Binding DataContext.CanvasHeight, ElementName=Root}"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:ThemeData">
+                                    <Grid>
+                                        <Grid.RenderTransform>
+                                            <TranslateTransform X="{Binding PositionX}" Y="{Binding PositionY}"/>
+                                        </Grid.RenderTransform>
+                                        <Button x:Name="NodeButton"
+                                                Background="Transparent"
+                                                BorderThickness="0"
+                                                Command="{Binding Command}">
+                                            <StackPanel Spacing="8">
+                                                <Image Source="{Binding Image}"
+                                                       Width="{Binding ImageWidth}"
+                                                       Height="{Binding ImageHeight}"
+                                                       Stretch="Uniform"/>
+
+                                                <TextBlock Text="{Binding Title}"
+                                                           Width="176"
+                                                           FontFamily="{StaticResource Poppins}"
+                                                           FontWeight="SemiBold"
+                                                           FontSize="16"
+                                                           Foreground="#7CDAF3"
+                                                           TextAlignment="Center"
+                                                           TextWrapping="Wrap"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Border Width="292"
+                                                Margin="202,-10,0,0"
+                                                HorizontalAlignment="Left"
+                                                VerticalAlignment="Top"
+                                                Background="#2B336B"
+                                                BorderBrush="#B35AFF"
+                                                BorderThickness="3"
+                                                CornerRadius="24"
+                                                Padding="14,10"
+                                                IsHitTestVisible="False"
+                                                IsVisible="{Binding #NodeButton.IsPointerOver}">
+                                            <StackPanel Spacing="8">
+                                                <TextBlock Text="{Binding Title}"
+                                                           FontFamily="{StaticResource LilitaOne}"
+                                                           FontSize="17"
+                                                           Foreground="#7CDAF3"/>
+                                                <TextBlock Text="{Binding Description}"
+                                                           FontFamily="{StaticResource Poppins}"
+                                                           FontSize="13"
+                                                           Foreground="#FFFFFF"
+                                                           Opacity="0.9"
+                                                           MaxWidth="250"
+                                                           TextWrapping="Wrap"/>
+                                                <Border Height="14"
+                                                        Background="#3A3F57"
+                                                        CornerRadius="7">
+                                                    <Border Width="{Binding LessonProgressWidth}"
+                                                            Height="14"
+                                                            Background="#F85CB0"
+                                                            CornerRadius="7"
+                                                            HorizontalAlignment="Left"/>
+                                                </Border>
+                                                <DockPanel LastChildFill="False">
+                                                    <TextBlock Text="Progreso"
+                                                               FontFamily="{StaticResource Poppins}"
+                                                               FontSize="12"
+                                                               Foreground="#7CDAF3"/>
+                                                    <TextBlock DockPanel.Dock="Right"
+                                                               Text="{Binding LessonProgressPercentage, StringFormat='{}{0}%'}"
+                                                               FontFamily="{StaticResource LilitaOne}"
+                                                               FontSize="14"
+                                                               Foreground="#F4D34E"/>
+                                                </DockPanel>
+                                                <TextBlock Text="Haz clic para abrir la lección"
+                                                           FontFamily="{StaticResource Poppins}"
+                                                           FontSize="12"
+                                                           Foreground="#DADFFF"/>
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </Canvas>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
 </UserControl>

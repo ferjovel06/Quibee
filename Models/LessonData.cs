@@ -33,9 +33,9 @@ public class LessonData
     public int StudentId { get; set; }
 
     /// <summary>
-    /// Grado al que pertenece la lección (1, 2, o 3)
+    /// Nivel al que pertenece la lección (1, 2, o 3)
     /// </summary>
-    public int GradeLevel { get; set; }
+    public int LevelNumber { get; set; }
 
     /// <summary>
     /// Número de tema (1-5)

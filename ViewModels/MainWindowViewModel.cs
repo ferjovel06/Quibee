@@ -13,7 +13,7 @@ namespace Quibee.ViewModels
             _currentView = new WelcomeViewModel(this);
             
             // TEMPORAL: Para testing directo del mapa
-            // _currentView = new LessonsMapViewModel(this, studentId: 1, gradeLevel: 1, ServiceLocator.GetTopicService());
+            // _currentView = new LessonsMapViewModel(this, studentId: 1, levelNumber: 1, ServiceLocator.GetTopicService());
         }
 
         /// <summary>
@@ -65,11 +65,11 @@ namespace Quibee.ViewModels
         }
 
         /// <summary>
-        /// Navega a la vista de selección de grado
+        /// Navega a la vista de selección de nivel (post-registro)
         /// </summary>
-        public void NavigateToGradeSelection(UserRegistrationData? userData = null)
+        public void NavigateToGradeSelection(int studentId)
         {
-            CurrentView = new GradeSelectionViewModel(this, userData);
+            CurrentView = new GradeSelectionViewModel(this, studentId);
         }
 
         /// <summary>
@@ -84,10 +84,10 @@ namespace Quibee.ViewModels
         /// Navega al mapa de lecciones después del login
         /// </summary>
         /// <param name="studentId">ID del estudiante logueado</param>
-        /// <param name="gradeLevel">Grado del estudiante (1, 2 o 3)</param>
-        public void NavigateToLessonsMap(int studentId, int gradeLevel)
+        /// <param name="levelNumber">Nivel del estudiante (1, 2 o 3)</param>
+        public void NavigateToLessonsMap(int studentId, int levelNumber)
         {
-            CurrentView = new LessonsMapViewModel(this, studentId, gradeLevel, ServiceLocator.GetTopicService());
+            CurrentView = new LessonsMapViewModel(this, studentId, levelNumber, ServiceLocator.GetTopicService());
         }
 
         /// <summary>

@@ -3,7 +3,7 @@ using System.Windows.Input;
 namespace Quibee.ViewModels;
 
 /// <summary>
-/// ViewModel para la lección: Relacionemos números y objetos (Grado 1, Tema 2)
+/// ViewModel para la lección: Relacionemos números y objetos (Nivel 1, Tema 2)
 /// </summary>
 public class Lesson_G1T2_ViewModel : ViewModelBase
 {
@@ -58,7 +58,7 @@ public class Lesson_G1T2_ViewModel : ViewModelBase
     private void OnVolver()
     {
         // Volver al mapa de lecciones
-        _mainWindowViewModel?.NavigateToLessonsMap(_studentId, gradeLevel: 1);
+        _mainWindowViewModel?.NavigateToLessonsMap(_studentId, levelNumber: 1);
     }
 
     private void OnSiguiente()

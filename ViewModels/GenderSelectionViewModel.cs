@@ -39,8 +39,8 @@ public class GenderSelectionViewModel : ViewModelBase
         if (_userData != null)
         {
             _userData.Genero = "Masculino";
+            _mainWindowViewModel?.NavigateToRegistrationConfirmation(_userData);
         }
-        _mainWindowViewModel?.NavigateToGradeSelection(_userData);
     }
 
     private void OnSelectFemenino()
@@ -49,7 +49,7 @@ public class GenderSelectionViewModel : ViewModelBase
         if (_userData != null)
         {
             _userData.Genero = "Femenino";
+            _mainWindowViewModel?.NavigateToRegistrationConfirmation(_userData);
         }
-        _mainWindowViewModel?.NavigateToGradeSelection(_userData);
     }
 }

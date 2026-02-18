@@ -31,27 +31,11 @@ public class Topic
     [Column("order_index")]
     public int OrderIndex { get; set; }
 
-    // Campos de posicionamiento en el mapa de lecciones
-    [Column("position_x")]
-    public double PositionX { get; set; }
-
-    [Column("position_y")]
-    public double PositionY { get; set; }
-
     [Column("icon_width")]
     public double IconWidth { get; set; } = 100;
 
     [Column("icon_height")]
     public double IconHeight { get; set; } = 100;
-
-    [Column("text_on_left")]
-    public bool TextOnLeft { get; set; } = false;
-
-    [Column("text_on_right")]
-    public bool TextOnRight { get; set; } = false;
-
-    [Column("rotation_angle")]
-    public double RotationAngle { get; set; } = 0;
 
     [Column("is_active")]
     public bool IsActive { get; set; } = true;

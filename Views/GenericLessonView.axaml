@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="using:Quibee.ViewModels"
+             xmlns:controls="using:Quibee.Views.Controls"
              x:Class="Quibee.Views.GenericLessonView"
              x:DataType="vm:GenericLessonViewModel">
 
@@ -8,7 +9,7 @@
         <Grid ColumnDefinitions="*,250">
         
             <!-- CONTENEDOR IZQUIERDO (Navbar + Contenido) -->
-            <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*">
+            <Grid Grid.Column="0" RowDefinitions="Auto,*">
                 
                 <!-- BARRA DE NAVEGACIÓN HORIZONTAL (arriba) -->
                 <StackPanel Grid.Row="0"
@@ -53,34 +54,18 @@
                     </Button>
                 </StackPanel>
 
-                <!-- Título de la lección -->
-                <Border Grid.Row="1"
-                       Background="#7CDAF3"
-                       Padding="50,15,50,15"
-                       Margin="70,20,70,0"
-                       CornerRadius="10">
-                    <TextBlock Text="{Binding LessonTitle}"
-                              FontFamily="{StaticResource LilitaOne}"
-                              FontSize="24"
-                              Foreground="#311B42"
-                              TextWrapping="Wrap"/>
-                </Border>
-
                 <!-- Contenido Principal (abajo) -->
-                <Border Grid.Row="2" Background="#311B42">
+                <Border Grid.Row="1" Background="#311B42">
                 <ScrollViewer VerticalScrollBarVisibility="Auto"
                              Padding="40">
-                    <StackPanel MaxWidth="900" Spacing="25">
-                        
-                        <!-- Contenido de la sección actual -->
-                        <TextBlock Text="{Binding CurrentSectionContent}"
-                                  FontFamily="{StaticResource Poppins}"
-                                  FontSize="16"
-                                  Foreground="White"
-                                  TextWrapping="Wrap"
-                                  LineHeight="22"/>
-                        
-                    </StackPanel>
+                    <ItemsControl ItemsSource="{Binding CurrentSectionContents}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <controls:DynamicContentControl LessonContent="{Binding}" 
+                                                               Margin="0,0,0,20"/>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                 </ScrollViewer>
             </Border>
             

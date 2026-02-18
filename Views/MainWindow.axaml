@@ -51,6 +51,7 @@
     <DataTemplate DataType="vm:GenericLessonViewModel">
       <views:GenericLessonView/>
     </DataTemplate>
+    
   </Window.DataTemplates>
   
   <!-- ContentControl que muestra la vista actual según el ViewModel -->

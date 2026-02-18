@@ -13,6 +13,7 @@ public static class ServiceLocator
     private static QuibeeDbContext? _dbContext;
     private static TopicService? _topicService;
     private static DataSeederService? _dataSeederService;
+    private static LessonContentService? _lessonContentService;
 
     /// <summary>
     /// Obtiene la instancia del DbContext (singleton)
@@ -46,6 +47,15 @@ public static class ServiceLocator
     }
 
     /// <summary>
+    /// Obtiene el servicio de contenido de lecciones
+    /// </summary>
+    public static LessonContentService GetLessonContentService()
+    {
+        _lessonContentService ??= new LessonContentService(GetDbContext());
+        return _lessonContentService;
+    }
+
+    /// <summary>
     /// Libera recursos
     /// </summary>
     public static void Dispose()
@@ -54,5 +64,6 @@ public static class ServiceLocator
         _dbContext = null;
         _topicService = null;
         _dataSeederService = null;
+        _lessonContentService = null;
     }
 }

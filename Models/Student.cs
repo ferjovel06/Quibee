@@ -31,8 +31,8 @@ public class Student
     public DateTime DateOfBirth { get; set; }
 
     [Required]
-    [Column("grade_level")]
-    public int GradeLevel { get; set; } // 1, 2 o 3
+    [Column("level_number")]
+    public int LevelNumber { get; set; } // 1, 2 o 3
 
     [Required]
     [Column("gender")]

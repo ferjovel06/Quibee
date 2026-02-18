@@ -13,6 +13,7 @@ public class QuibeeDbContext : DbContext
     public DbSet<Level> Levels { get; set; }
     public DbSet<Topic> Topics { get; set; }
     public DbSet<Lesson> Lessons { get; set; }
+    public DbSet<LessonContent> LessonContents { get; set; }
     public DbSet<Exercise> Exercises { get; set; }
     public DbSet<StudentLevelProgress> StudentLevelProgress { get; set; }
     public DbSet<StudentLessonProgress> StudentLessonProgress { get; set; }
@@ -64,6 +65,7 @@ public class QuibeeDbContext : DbContext
         modelBuilder.Entity<Level>().ToTable("LEVEL");
         modelBuilder.Entity<Topic>().ToTable("TOPIC");
         modelBuilder.Entity<Lesson>().ToTable("LESSON");
+        modelBuilder.Entity<LessonContent>().ToTable("LESSON_CONTENT");
         modelBuilder.Entity<Exercise>().ToTable("EXERCISE");
         modelBuilder.Entity<StudentLevelProgress>().ToTable("STUDENT_LEVEL_PROGRESS");
         modelBuilder.Entity<StudentLessonProgress>().ToTable("STUDENT_LESSON_PROGRESS");

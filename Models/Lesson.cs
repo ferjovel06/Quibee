@@ -52,4 +52,6 @@ public class Lesson
     public Topic? Topic { get; set; }
     
     public ICollection<Exercise> Exercises { get; set; } = new List<Exercise>();
+    
+    public ICollection<LessonContent> Contents { get; set; } = new List<LessonContent>();
 }

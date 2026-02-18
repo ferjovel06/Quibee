@@ -94,7 +94,7 @@ CREATE TABLE IF NOT EXISTS STUDENT (
     first_name VARCHAR(50),                           -- MEJORA: Separar nombres de apellidos
     last_name VARCHAR(50),                            -- MEJORA: Apellidos
     date_of_birth DATE,                               -- MEJORA: Fecha de nacimiento (para estadísticas y personalización)
-    grade_level INT,                                  -- MEJORA: Grado escolar (1, 2, 3)
+    level_number INT,                                 -- MEJORA: Nivel escolar (1, 2, 3)
     gender ENUM('male', 'female', 'other', 'prefer_not_to_say'),  -- Gender for personalization (optional)
     avatar VARCHAR(255),                              -- Path to avatar image
     email VARCHAR(100) UNIQUE,                        -- MEJORA: Email (opcional pero útil para recuperación)
