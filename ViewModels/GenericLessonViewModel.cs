@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Windows.Input;
@@ -15,8 +16,16 @@ public class GenericLessonViewModel : ViewModelBase
     private readonly MainWindowViewModel? _mainWindowViewModel;
     private readonly LessonData _lessonData;
     private readonly LessonContentService _contentService;
+    private readonly LessonProgressService _progressService;
     private LessonSection? _currentSection;
     private ObservableCollection<LessonContent> _currentSectionContents;
+
+    // Popup de progreso
+    private bool _showProgressPopup;
+    private string _popupTitle = "";
+    private string _popupMessage = "";
+    private string _popupPoints = "";
+    private bool _popupIsSuccess;
 
     public GenericLessonViewModel(
         MainWindowViewModel? mainWindowViewModel,
@@ -25,6 +34,7 @@ public class GenericLessonViewModel : ViewModelBase
         _mainWindowViewModel = mainWindowViewModel;
         _lessonData = lessonData;
         _contentService = ServiceLocator.GetLessonContentService();
+        _progressService = ServiceLocator.GetLessonProgressService();
         _currentSectionContents = new ObservableCollection<LessonContent>();
 
         // Inicializar las secciones como ObservableCollection
@@ -36,6 +46,10 @@ public class GenericLessonViewModel : ViewModelBase
         // Comandos
         VolverCommand = new RelayCommand(OnVolver);
         SectionClickCommand = new RelayCommand(param => OnSectionClick(param));
+        ClosePopupCommand = new RelayCommand(_ => ShowProgressPopup = false);
+
+        // Escuchar eventos de ejercicios completados
+        ExerciseMessenger.ExerciseCompleted += OnExerciseCompleted;
     }
 
     /// <summary>
@@ -77,6 +91,20 @@ public class GenericLessonViewModel : ViewModelBase
                         CurrentSection = Sections[0];
                         CurrentSection.IsSelected = true;
                         await LoadSectionContentAsync(sections[0]);
+                        
+                        // Registrar visita a la primera sección
+                        try
+                        {
+                            await _progressService.RecordSectionVisitAsync(
+                                _lessonData.StudentId,
+                                _lessonData.LessonNumber,
+                                sections[0],
+                                Sections.Count);
+                        }
+                        catch (Exception)
+                        {
+                            // Error silencioso
+                        }
                     }
                 }
             }
@@ -119,24 +147,28 @@ public class GenericLessonViewModel : ViewModelBase
         return sectionKey.ToLower() switch
         {
             "introduccion" => (
-                "avares://Quibee/Assets/Images/IntroduccionIconLight.png",
-                "avares://Quibee/Assets/Images/IntroduccionIconDark.png"
+                "avares://Quibee/Assets/Images/Icons/BulbLight.png",
+                "avares://Quibee/Assets/Images/Icons/BulbDark.png"
             ),
             "analicemos" => (
-                "avares://Quibee/Assets/Images/AnalicemosIconLight.png",
-                "avares://Quibee/Assets/Images/AnalicemosIconDark.png"
+                "avares://Quibee/Assets/Images/Icons/BrainLight.png",
+                "avares://Quibee/Assets/Images/Icons/BrainDark.png"
             ),
             "ejercitemos" or "practiquemos" => (
-                "avares://Quibee/Assets/Images/EjercitemosIconLight.png",
-                "avares://Quibee/Assets/Images/EjercitemosIconDark.png"
+                "avares://Quibee/Assets/Images/Icons/BookLight.png",
+                "avares://Quibee/Assets/Images/Icons/BookDark.png"
             ),
             "resolvamos" => (
-                "avares://Quibee/Assets/Images/ResolvamosIconLight.png",
-                "avares://Quibee/Assets/Images/ResolvamosIconDark.png"
+                "avares://Quibee/Assets/Images/Icons/PencilLight.png",
+                "avares://Quibee/Assets/Images/Icons/PencilDark.png"
+            ),
+            "desafio" => (
+                "avares://Quibee/Assets/Images/Icons/FlagLight.png",
+                "avares://Quibee/Assets/Images/Icons/FlagDark.png"
             ),
             _ => (
-                "avares://Quibee/Assets/Images/DefaultIconLight.png",
-                "avares://Quibee/Assets/Images/DefaultIconDark.png"
+                "avares://Quibee/Assets/Images/Icons/StarLight.png",
+                "avares://Quibee/Assets/Images/Icons/StarLight.png"
             )
         };
     }
@@ -208,10 +240,44 @@ public class GenericLessonViewModel : ViewModelBase
     // Comandos
     public ICommand VolverCommand { get; }
     public ICommand SectionClickCommand { get; }
+    public ICommand ClosePopupCommand { get; }
+
+    // ─── Propiedades del Popup de progreso ───
+
+    public bool ShowProgressPopup
+    {
+        get => _showProgressPopup;
+        set { _showProgressPopup = value; OnPropertyChanged(); }
+    }
+
+    public string PopupTitle
+    {
+        get => _popupTitle;
+        set { _popupTitle = value; OnPropertyChanged(); }
+    }
+
+    public string PopupMessage
+    {
+        get => _popupMessage;
+        set { _popupMessage = value; OnPropertyChanged(); }
+    }
+
+    public string PopupPoints
+    {
+        get => _popupPoints;
+        set { _popupPoints = value; OnPropertyChanged(); }
+    }
+
+    public bool PopupIsSuccess
+    {
+        get => _popupIsSuccess;
+        set { _popupIsSuccess = value; OnPropertyChanged(); }
+    }
 
     // Handlers
     private void OnVolver()
     {
+        Cleanup();
         // Volver al mapa de lecciones
         _mainWindowViewModel?.NavigateToLessonsMap(_lessonData.StudentId, _lessonData.LevelNumber);
     }
@@ -222,9 +288,78 @@ public class GenericLessonViewModel : ViewModelBase
         {
             CurrentSection = section;
             
-            // Cargar contenido de la nueva sección
+            // Cargar contenido de la nueva sección y registrar la visita
             var sectionKey = section.Name.ToLower();
-            _ = LoadSectionContentAsync(sectionKey);
+            _ = LoadSectionContentAndTrackAsync(sectionKey);
         }
+    }
+
+    /// <summary>
+    /// Carga el contenido de la sección y registra la visita para el progreso.
+    /// </summary>
+    private async Task LoadSectionContentAndTrackAsync(string sectionKey)
+    {
+        await LoadSectionContentAsync(sectionKey);
+        
+        try
+        {
+            await _progressService.RecordSectionVisitAsync(
+                _lessonData.StudentId,
+                _lessonData.LessonNumber,
+                sectionKey,
+                Sections.Count);
+        }
+        catch (Exception)
+        {
+            // Error silencioso: no bloquear la navegación si falla el tracking
+        }
+    }
+
+    // ─── Progreso y Popup ───
+
+    private async void OnExerciseCompleted(object? sender, ExerciseCompletedEventArgs e)
+    {
+        // Registrar la sección del ejercicio como visitada
+        try
+        {
+            await _progressService.RecordSectionVisitAsync(
+                _lessonData.StudentId,
+                _lessonData.LessonNumber,
+                e.SectionType,
+                Sections.Count);
+        }
+        catch (Exception)
+        {
+            // Error silencioso
+        }
+
+        // Mostrar popup en el hilo de UI
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (e.AllCorrect)
+            {
+                PopupIsSuccess = true;
+                PopupTitle = "🎉 ¡Excelente trabajo!";
+                PopupMessage = $"Respondiste correctamente {e.CorrectCount}/{e.TotalCount}";
+                PopupPoints = $"+{e.PointsEarned} puntos";
+            }
+            else
+            {
+                PopupIsSuccess = false;
+                PopupTitle = "💪 ¡Sigue intentando!";
+                PopupMessage = $"Respondiste {e.CorrectCount}/{e.TotalCount} correctamente";
+                PopupPoints = e.PointsEarned > 0 ? $"+{e.PointsEarned} puntos" : "";
+            }
+
+            ShowProgressPopup = true;
+        });
+    }
+
+    /// <summary>
+    /// Limpieza al destruir el ViewModel.
+    /// </summary>
+    public void Cleanup()
+    {
+        ExerciseMessenger.ExerciseCompleted -= OnExerciseCompleted;
     }
 }

@@ -46,6 +46,7 @@ public partial class DynamicContentControl : UserControl
             "text" => new TextContentControl { ContentData = LessonContent.Data },
             "heading" => new HeadingContentControl { ContentData = LessonContent.Data },
             "visual_example" => new VisualExampleControl { ContentData = LessonContent.Data },
+            "matching_exercise" => new MatchingExerciseControl { ContentData = LessonContent.Data },
             _ => new TextBlock 
             { 
                 Text = $"[Tipo no soportado: {LessonContent.ContentType}]",

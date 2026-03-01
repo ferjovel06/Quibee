@@ -15,15 +15,23 @@ public class Exercise
     [Column("id_lesson")]
     public int IdLesson { get; set; }
 
+    /// <summary>Sección a la que pertenece: resolvamos, desafio, practiquemos</summary>
+    [Column("section_type")]
+    [MaxLength(50)]
+    public string? SectionType { get; set; }
+
+    /// <summary>Texto de la instrucción mostrada al estudiante</summary>
+    [Column("instructions")]
+    public string? Instructions { get; set; }
+
     [Required]
     [Column("exercise_type")]
     [MaxLength(30)]
     public string ExerciseType { get; set; } = string.Empty; // drag_drop, ordering, matching, multiple_choice, fill_blank
 
-    [Required]
     [Column("question_text")]
     [MaxLength(500)]
-    public string QuestionText { get; set; } = string.Empty;
+    public string? QuestionText { get; set; }
 
     [Column("config")]
     [MaxLength(2000)]

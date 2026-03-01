@@ -44,51 +44,93 @@ public class LessonContentService
     }
 
     /// <summary>
-    /// Obtiene el contenido de una sección específica de una lección
+    /// Obtiene el contenido de una sección específica de una lección.
+    /// Combina contenido estático (LESSON_CONTENT) con ejercicios interactivos (EXERCISE),
+    /// ordenados por order_index para respetar el flujo de la lección.
     /// </summary>
-    /// <param name="lessonId">ID de la lección</param>
-    /// <param name="sectionType">Tipo de sección ('introduccion', 'analicemos', etc.)</param>
-    /// <returns>Lista de contenidos de esa sección</returns>
     public async Task<List<LessonContent>> GetLessonContentBySectionAsync(int lessonId, string sectionType)
     {
-        var contents = await _context.LessonContents
+        // 1. Contenido estático desde LESSON_CONTENT
+        var staticContents = await _context.LessonContents
             .AsNoTracking()
-            .Where(lc => lc.IdLesson == lessonId 
-                      && lc.SectionType == sectionType 
+            .Where(lc => lc.IdLesson == lessonId
+                      && lc.SectionType == sectionType
                       && lc.IsActive)
             .OrderBy(lc => lc.OrderIndex)
             .ToListAsync();
 
-        // Deserializar el JSON de cada contenido
-        foreach (var content in contents)
-        {
+        foreach (var content in staticContents)
             content.DeserializeData();
-        }
 
-        return contents;
+        // 2. Ejercicios interactivos desde EXERCISE → mapeados a LessonContent
+        var exercises = await _context.Exercises
+            .AsNoTracking()
+            .Where(e => e.IdLesson == lessonId
+                     && e.SectionType == sectionType
+                     && e.IsActive)
+            .OrderBy(e => e.OrderIndex)
+            .ToListAsync();
+
+        var exerciseContents = exercises.Select(e => new LessonContent
+        {
+            IdContent = -e.IdExercise, // negativo para distinguir de LESSON_CONTENT
+            IdLesson   = e.IdLesson,
+            ContentType = MapExerciseType(e.ExerciseType),
+            ContentDataJson = e.Config ?? "{}",
+            OrderIndex  = e.OrderIndex,
+            SectionType = e.SectionType,
+            IsActive    = e.IsActive,
+        }).ToList();
+
+        foreach (var ec in exerciseContents)
+            ec.DeserializeData();
+
+        // 3. Combinar y ordenar por order_index
+        return staticContents
+            .Concat(exerciseContents)
+            .OrderBy(c => c.OrderIndex)
+            .ToList();
     }
 
     /// <summary>
-    /// Obtiene todas las secciones distintas de una lección
+    /// Mapea el exercise_type de EXERCISE al content_type que entiende DynamicContentControl.
     /// </summary>
-    /// <param name="lessonId">ID de la lección</param>
-    /// <returns>Lista de nombres de secciones</returns>
+    private static string MapExerciseType(string exerciseType) => exerciseType switch
+    {
+        "visual_count" => "visual_example",
+        "matching"     => "matching_exercise",
+        _              => exerciseType
+    };
+
+    /// <summary>
+    /// Obtiene todas las secciones distintas de una lección.
+    /// Incluye secciones de LESSON_CONTENT y de EXERCISE (unión de ambas).
+    /// </summary>
     public async Task<List<string>> GetLessonSectionsAsync(int lessonId)
     {
-        return await _context.LessonContents
+        // Secciones con su primer id_content (para ordenar por aparición original)
+        var fromContent = await _context.LessonContents
             .AsNoTracking()
-            .Where(lc => lc.IdLesson == lessonId && lc.IsActive)
-            .Where(lc => lc.SectionType != null)
+            .Where(lc => lc.IdLesson == lessonId && lc.IsActive && lc.SectionType != null)
             .GroupBy(lc => lc.SectionType!)
-            .Select(g => new
-            {
-                SectionType = g.Key,
-                FirstContentId = g.Min(x => x.IdContent)
-            })
-            .OrderBy(x => x.FirstContentId)
-            .ThenBy(x => x.SectionType)
-            .Select(x => x.SectionType)
+            .Select(g => new { SectionType = g.Key, MinId = g.Min(x => x.IdContent) })
             .ToListAsync();
+
+        // Secciones que únicamente existen en EXERCISE (sin contenido estático)
+        var contentSections = fromContent.Select(x => x.SectionType).ToHashSet();
+        var fromExercises = await _context.Exercises
+            .AsNoTracking()
+            .Where(e => e.IdLesson == lessonId && e.IsActive && e.SectionType != null
+                     && !contentSections.Contains(e.SectionType!))
+            .GroupBy(e => e.SectionType!)
+            .Select(g => new { SectionType = g.Key, MinId = -g.Min(x => x.IdExercise) })
+            .ToListAsync();
+
+        return fromContent
+            .Concat(fromExercises)
+            .OrderBy(x => x.MinId)
+            .Select(x => x.SectionType)
+            .ToList();
     }
 
     /// <summary>

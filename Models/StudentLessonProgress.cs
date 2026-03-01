@@ -21,6 +21,24 @@ public class StudentLessonProgress
     [Column("is_completed")]
     public bool IsCompleted { get; set; } = false;
 
+    /// <summary>
+    /// Lista de secciones visitadas, separadas por coma (ej: "introduccion,analicemos,resolvamos")
+    /// </summary>
+    [Column("sections_visited")]
+    public string? SectionsVisited { get; set; }
+
+    /// <summary>
+    /// Total de secciones disponibles en la lección
+    /// </summary>
+    [Column("total_sections")]
+    public int TotalSections { get; set; }
+
+    /// <summary>
+    /// Porcentaje de progreso calculado (0-100)
+    /// </summary>
+    [Column("progress_percentage")]
+    public int ProgressPercentage { get; set; }
+
     [Column("time_spent_minutes")]
     public int? TimeSpentMinutes { get; set; }
 

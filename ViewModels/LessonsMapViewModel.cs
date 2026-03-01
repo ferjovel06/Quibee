@@ -292,7 +292,7 @@ public class LessonsMapViewModel : ViewModelBase
 
     private void RecalculateCanvasHeight()
     {
-        const double bottomPadding = 200;
+        const double bottomPadding = 260;
         var maxBottom = Nodes.Count == 0
             ? 700
             : Nodes.Max(n => n.PositionY + n.ImageHeight);

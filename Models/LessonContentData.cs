@@ -63,6 +63,22 @@ public class LessonContentData
 
     [JsonPropertyName("colors")]
     public List<string>? Colors { get; set; }
+
+    // Propiedades para matching_exercise (Desafío)
+    [JsonPropertyName("instruction")]
+    public string? Instruction { get; set; }
+
+    [JsonPropertyName("rows")]
+    public List<MatchingRow>? Rows { get; set; }
+
+    [JsonPropertyName("numberImagePattern")]
+    public string? NumberImagePattern { get; set; }
+
+    [JsonPropertyName("numberImageWidth")]
+    public int? NumberImageWidth { get; set; }
+
+    [JsonPropertyName("numberImageHeight")]
+    public int? NumberImageHeight { get; set; }
 }
 
 /// <summary>

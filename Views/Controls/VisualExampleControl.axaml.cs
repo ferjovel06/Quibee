@@ -9,6 +9,7 @@ using Avalonia.Layout;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Quibee.Models;
+using Quibee.Services;
 
 namespace Quibee.Views.Controls;
 
@@ -100,44 +101,20 @@ public partial class VisualExampleControl : UserControl
         // Si es una imagen repetida
         if (!string.IsNullOrEmpty(obj.ImageUrl) && obj.Count.HasValue && obj.Count > 1)
         {
-            // Caso específico para 5 elementos: patrón visual 2 arriba + 3 abajo.
+            // Patrones visuales específicos para aproximar el diseño de ejercicios.
+            if (obj.Count.Value == 4)
+            {
+                return CreateTwoRowImagePattern(obj.ImageUrl, obj.Width, obj.Height, 2, 2);
+            }
+
             if (obj.Count.Value == 5)
             {
-                var verticalPanel = new StackPanel
-                {
-                    Orientation = Orientation.Vertical,
-                    Spacing = 6
-                };
+                return CreateTwoRowImagePattern(obj.ImageUrl, obj.Width, obj.Height, 2, 3);
+            }
 
-                var topRow = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    Spacing = 8,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-
-                var bottomRow = new StackPanel
-                {
-                    Orientation = Orientation.Horizontal,
-                    Spacing = 8,
-                    HorizontalAlignment = HorizontalAlignment.Center
-                };
-
-                for (int i = 0; i < 2; i++)
-                {
-                    var image = CreateImage(obj.ImageUrl, obj.Width, obj.Height);
-                    if (image != null) topRow.Children.Add(image);
-                }
-
-                for (int i = 0; i < 3; i++)
-                {
-                    var image = CreateImage(obj.ImageUrl, obj.Width, obj.Height);
-                    if (image != null) bottomRow.Children.Add(image);
-                }
-
-                verticalPanel.Children.Add(topRow);
-                verticalPanel.Children.Add(bottomRow);
-                return verticalPanel;
+            if (obj.Count.Value == 6)
+            {
+                return CreateTwoRowImagePattern(obj.ImageUrl, obj.Width, obj.Height, 3, 3);
             }
 
             var stackPanel = new StackPanel
@@ -266,6 +243,50 @@ public partial class VisualExampleControl : UserControl
         return null;
     }
 
+    private Control CreateTwoRowImagePattern(
+        string imageUrl,
+        int? width,
+        int? height,
+        int topCount,
+        int bottomCount)
+    {
+        var verticalPanel = new StackPanel
+        {
+            Orientation = Orientation.Vertical,
+            Spacing = 6
+        };
+
+        var topRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+
+        var bottomRow = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            Spacing = 8,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+
+        for (int i = 0; i < topCount; i++)
+        {
+            var image = CreateImage(imageUrl, width, height);
+            if (image != null) topRow.Children.Add(image);
+        }
+
+        for (int i = 0; i < bottomCount; i++)
+        {
+            var image = CreateImage(imageUrl, width, height);
+            if (image != null) bottomRow.Children.Add(image);
+        }
+
+        verticalPanel.Children.Add(topRow);
+        verticalPanel.Children.Add(bottomRow);
+        return verticalPanel;
+    }
+
     private Image? CreateImage(string imageUrl, int? width, int? height)
     {
         try
@@ -313,5 +334,14 @@ public partial class VisualExampleControl : UserControl
         validationMessage.Foreground = isCorrect
             ? new SolidColorBrush(Color.Parse("#65E4A3"))
             : new SolidColorBrush(Color.Parse("#FF8A8A"));
+
+        // Notificar al ViewModel
+        ExerciseMessenger.NotifyExerciseCompleted(new ExerciseCompletedEventArgs
+        {
+            CorrectCount = isCorrect ? 1 : 0,
+            TotalCount = 1,
+            PointsEarned = isCorrect ? 10 : 0,
+            SectionType = "resolvamos"
+        });
     }
 }

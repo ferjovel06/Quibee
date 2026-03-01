@@ -67,7 +67,7 @@ public class TopicService
 
     /// <summary>
     /// Obtiene progreso por lección para un estudiante.
-    /// Como la tabla no tiene porcentaje por lección, se mapea is_completed a 100/0.
+    /// Usa progress_percentage para granularidad por secciones visitadas.
     /// </summary>
     public async Task<Dictionary<int, int>> GetStudentLessonProgressByLessonIdsAsync(
         int studentId,
@@ -81,13 +81,13 @@ public class TopicService
         var progressRows = await _context.StudentLessonProgress
             .AsNoTracking()
             .Where(p => p.IdStudent == studentId && lessonIds.Contains(p.IdLesson))
-            .Select(p => new { p.IdLesson, p.IsCompleted })
+            .Select(p => new { p.IdLesson, p.ProgressPercentage })
             .ToListAsync();
 
         var progressByLesson = lessonIds.ToDictionary(id => id, _ => 0);
         foreach (var row in progressRows)
         {
-            progressByLesson[row.IdLesson] = row.IsCompleted ? 100 : 0;
+            progressByLesson[row.IdLesson] = row.ProgressPercentage;
         }
 
         return progressByLesson;

@@ -14,6 +14,7 @@ public static class ServiceLocator
     private static TopicService? _topicService;
     private static DataSeederService? _dataSeederService;
     private static LessonContentService? _lessonContentService;
+    private static LessonProgressService? _lessonProgressService;
 
     /// <summary>
     /// Obtiene la instancia del DbContext (singleton)
@@ -56,6 +57,15 @@ public static class ServiceLocator
     }
 
     /// <summary>
+    /// Obtiene el servicio de progreso de lecciones
+    /// </summary>
+    public static LessonProgressService GetLessonProgressService()
+    {
+        _lessonProgressService ??= new LessonProgressService(GetDbContext());
+        return _lessonProgressService;
+    }
+
+    /// <summary>
     /// Libera recursos
     /// </summary>
     public static void Dispose()
@@ -65,5 +75,6 @@ public static class ServiceLocator
         _topicService = null;
         _dataSeederService = null;
         _lessonContentService = null;
+        _lessonProgressService = null;
     }
 }

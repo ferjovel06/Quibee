@@ -5,124 +5,192 @@
              x:Class="Quibee.Views.GenericLessonView"
              x:DataType="vm:GenericLessonViewModel">
 
-    <Border Background="#311B42">
-        <Grid ColumnDefinitions="*,250">
-        
-            <!-- CONTENEDOR IZQUIERDO (Navbar + Contenido) -->
-            <Grid Grid.Column="0" RowDefinitions="Auto,*">
-                
-                <!-- BARRA DE NAVEGACIÓN HORIZONTAL (arriba) -->
-                <StackPanel Grid.Row="0"
-                           Orientation="Horizontal"
-                           HorizontalAlignment="Left"
-                           Margin="70,30,0,20"
-                           Spacing="30">
+    <Panel>
+        <!-- ═══ CONTENIDO PRINCIPAL ═══ -->
+        <Border Background="#311B42">
+            <Grid ColumnDefinitions="*,250">
+            
+                <!-- CONTENEDOR IZQUIERDO (Navbar + Contenido) -->
+                <Grid Grid.Column="0" RowDefinitions="Auto,*">
                     
-                    <!-- Botón Lecciones (activo) -->
-                    <Button Background="White"
-                           BorderThickness="0"
-                           CornerRadius="20"
-                           Padding="30,10"
-                           Cursor="Hand"
-                           Command="{Binding VolverCommand}">
-                        <TextBlock Text="Lecciones"
-                                 FontFamily="{StaticResource LilitaOne}"
-                                 FontSize="24"
-                                 Foreground="#311B42"/>
-                    </Button>
+                    <!-- BARRA DE NAVEGACIÓN HORIZONTAL (arriba) -->
+                    <StackPanel Grid.Row="0"
+                               Orientation="Horizontal"
+                               HorizontalAlignment="Left"
+                               Margin="70,30,0,20"
+                               Spacing="30">
+                        
+                        <!-- Botón Lecciones (activo) -->
+                        <Button Background="White"
+                               BorderThickness="0"
+                               CornerRadius="20"
+                               Padding="30,10"
+                               Cursor="Hand"
+                               Command="{Binding VolverCommand}">
+                            <TextBlock Text="Lecciones"
+                                     FontFamily="{StaticResource LilitaOne}"
+                                     FontSize="24"
+                                     Foreground="#311B42"/>
+                        </Button>
 
-                    <!-- Botón Manual -->
-                    <Button Background="Transparent"
-                           BorderThickness="0"
-                           Cursor="Hand">
-                        <TextBlock Text="Manual"
-                                 FontFamily="{StaticResource LilitaOne}"
-                                 FontSize="24"
-                                 Foreground="White"/>
-                    </Button>
+                        <!-- Botón Manual -->
+                        <Button Background="Transparent"
+                               BorderThickness="0"
+                               Cursor="Hand">
+                            <TextBlock Text="Manual"
+                                     FontFamily="{StaticResource LilitaOne}"
+                                     FontSize="24"
+                                     Foreground="White"/>
+                        </Button>
 
-                    <!-- Botón Usuario -->
-                    <Button Background="#D51A52"
-                           BorderThickness="0"
-                           CornerRadius="20"
-                           Padding="30,10"
-                           Cursor="Hand">
-                        <TextBlock Text="Usuario"
-                                 FontFamily="{StaticResource LilitaOne}"
-                                 FontSize="24"
-                                 Foreground="White"/>
-                    </Button>
-                </StackPanel>
+                        <!-- Botón Usuario -->
+                        <Button Background="#D51A52"
+                               BorderThickness="0"
+                               CornerRadius="20"
+                               Padding="30,10"
+                               Cursor="Hand">
+                            <TextBlock Text="Usuario"
+                                     FontFamily="{StaticResource LilitaOne}"
+                                     FontSize="24"
+                                     Foreground="White"/>
+                        </Button>
+                    </StackPanel>
 
-                <!-- Contenido Principal (abajo) -->
-                <Border Grid.Row="1" Background="#311B42">
-                <ScrollViewer VerticalScrollBarVisibility="Auto"
-                             Padding="40">
-                    <ItemsControl ItemsSource="{Binding CurrentSectionContents}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <controls:DynamicContentControl LessonContent="{Binding}" 
-                                                               Margin="0,0,0,20"/>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Border>
-            
-            </Grid>
-            
-            <!-- CONTENEDOR DERECHO (Sidebar) -->
-            <Border Grid.Column="1" Background="#7CDAF3">
-                <DockPanel LastChildFill="True">
+                    <!-- Contenido Principal (abajo) -->
+                    <ScrollViewer Grid.Row="1"
+                                  VerticalScrollBarVisibility="Auto"
+                                  Background="#311B42">
+                        <ItemsControl ItemsSource="{Binding CurrentSectionContents}"
+                                      Margin="40">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <controls:DynamicContentControl LessonContent="{Binding}" 
+                                                                   Margin="0,0,0,20"/>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                
+                </Grid>
+                
+                <!-- CONTENEDOR DERECHO (Sidebar) -->
+                <Border Grid.Column="1" Background="#7CDAF3">
+                    <DockPanel LastChildFill="True">
 
-                <!-- Logo Q-bit arriba -->
-                <Image DockPanel.Dock="Top"
-                      Source="avares://Quibee/Assets/Images/QbitLogo.png"
-                      Width="120"
-                      Height="120"
-                      HorizontalAlignment="Center"
-                      Margin="0,20,0,20"/>
+                    <!-- Logo Q-bit arriba -->
+                    <Image DockPanel.Dock="Top"
+                          Source="avares://Quibee/Assets/Images/QbitLogo.png"
+                          Width="120"
+                          Height="120"
+                          HorizontalAlignment="Center"
+                          Margin="0,20,0,20"/>
 
-                <!-- Secciones -->
-                <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto" Margin="0,0,0,0">
-                    <ItemsControl ItemsSource="{Binding Sections}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border BorderThickness="0"
-                                       Background="{Binding IsSelected, Converter={StaticResource BoolToColorConverter}}"
-                                       CornerRadius="0,30,30,0"
-                                       Margin="0,2,10,2">
-                                    <Button Background="Transparent"
-                                           BorderThickness="0"
-                                           Padding="15,14"
-                                           HorizontalAlignment="Stretch"
-                                           HorizontalContentAlignment="Right"
-                                           Command="{Binding $parent[UserControl].((vm:GenericLessonViewModel)DataContext).SectionClickCommand}"
-                                           CommandParameter="{Binding}">
-                                        <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <TextBlock Text="{Binding Name}"
-                                                      FontFamily="{StaticResource Poppins}"
-                                                      FontSize="18"
-                                                      FontWeight="SemiBold"
-                                                      Foreground="{Binding IsSelected, Converter={StaticResource BoolToForegroundConverter}}"
+                    <!-- Secciones -->
+                    <ScrollViewer DockPanel.Dock="Top" VerticalScrollBarVisibility="Auto" Margin="0,0,0,0">
+                        <ItemsControl ItemsSource="{Binding Sections}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderThickness="0"
+                                           Background="{Binding IsSelected, Converter={StaticResource BoolToColorConverter}}"
+                                           CornerRadius="0,30,30,0"
+                                           Margin="0,2,10,2">
+                                        <Button Background="Transparent"
+                                               BorderThickness="0"
+                                               Padding="15,14"
+                                               HorizontalAlignment="Stretch"
+                                               HorizontalContentAlignment="Right"
+                                               Command="{Binding $parent[UserControl].((vm:GenericLessonViewModel)DataContext).SectionClickCommand}"
+                                               CommandParameter="{Binding}">
+                                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                                <TextBlock Text="{Binding Name}"
+                                                          FontFamily="{StaticResource Poppins}"
+                                                          FontSize="18"
+                                                          FontWeight="SemiBold"
+                                                          Foreground="{Binding IsSelected, Converter={StaticResource BoolToForegroundConverter}}"
+                                                          VerticalAlignment="Center"/>
+                                                <Image Source="{Binding Icon}"
+                                                      Width="22"
+                                                      Height="22"
                                                       VerticalAlignment="Center"/>
-                                            <Image Source="{Binding Icon}"
-                                                  Width="22"
-                                                  Height="22"
-                                                  VerticalAlignment="Center"/>
-                                        </StackPanel>
-                                    </Button>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-                          
-                </DockPanel>
+                                            </StackPanel>
+                                        </Button>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                              
+                    </DockPanel>
+                </Border>
+
+            </Grid>
+        </Border>
+
+        <!-- ═══ POPUP OVERLAY DE PROGRESO ═══ -->
+        <Border Background="#88000000"
+                IsVisible="{Binding ShowProgressPopup}"
+                ZIndex="100">
+            <Border Background="#3D2555"
+                    CornerRadius="24"
+                    Padding="40,30"
+                    MaxWidth="420"
+                    MaxHeight="380"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    BoxShadow="0 8 32 0 #66000000">
+                <StackPanel Spacing="16" HorizontalAlignment="Center">
+                    
+                    <!-- Título -->
+                    <TextBlock Text="{Binding PopupTitle}"
+                               FontFamily="{StaticResource LilitaOne}"
+                               FontSize="28"
+                               Foreground="White"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"/>
+
+                    <!-- Imagen decorativa -->
+                    <Image Source="avares://Quibee/Assets/Images/Star.png"
+                           Width="70"
+                           Height="70"
+                           HorizontalAlignment="Center"/>
+
+                    <!-- Mensaje -->
+                    <TextBlock Text="{Binding PopupMessage}"
+                               FontFamily="{StaticResource Poppins}"
+                               FontSize="16"
+                               Foreground="#CCCCCC"
+                               HorizontalAlignment="Center"
+                               TextWrapping="Wrap"
+                               TextAlignment="Center"
+                               LineHeight="24"/>
+
+                    <!-- Puntos ganados -->
+                    <TextBlock Text="{Binding PopupPoints}"
+                               FontFamily="{StaticResource LilitaOne}"
+                               FontSize="24"
+                               Foreground="#FFD166"
+                               HorizontalAlignment="Center"
+                               IsVisible="{Binding PopupPoints, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+
+                    <!-- Botón cerrar -->
+                    <Button Background="#B35AFF"
+                            Foreground="White"
+                            FontSize="18"
+                            FontWeight="SemiBold"
+                            FontFamily="{StaticResource Poppins}"
+                            Padding="30,10"
+                            CornerRadius="16"
+                            BorderThickness="0"
+                            HorizontalAlignment="Center"
+                            Cursor="Hand"
+                            Command="{Binding ClosePopupCommand}">
+                        <TextBlock Text="Continuar"/>
+                    </Button>
+
+                </StackPanel>
             </Border>
-
-        </Grid>
-
-    </Border>
+        </Border>
+    </Panel>
 
 </UserControl>

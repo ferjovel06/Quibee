@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="600"
+             x:Class="Quibee.Views.Controls.MatchingExerciseControl">
+
+    <Border Background="Transparent"
+            Padding="0"
+            Margin="0,10,0,10">
+        <StackPanel Spacing="20">
+            
+            <!-- Instrucción -->
+            <TextBlock x:Name="InstructionText"
+                       Text="Arrastra el número correcto a cada grupo"
+                       FontFamily="{StaticResource Poppins}"
+                       FontSize="22"
+                       FontWeight="SemiBold"
+                       Foreground="White"
+                       HorizontalAlignment="Center"
+                       TextWrapping="Wrap"
+                       Margin="0,0,0,10"/>
+
+            <!-- Contenedor principal: filas a la izquierda, números arrastrables a la derecha -->
+            <Grid ColumnDefinitions="*,Auto">
+                
+                <!-- Filas de objetos con casillas -->
+                <StackPanel x:Name="RowsContainer"
+                            Grid.Column="0"
+                            Spacing="16"
+                            Margin="0,0,30,0"/>
+
+                <!-- Números arrastrables -->
+                <Border Grid.Column="1"
+                        Background="#4A3560"
+                        CornerRadius="16"
+                        Padding="16,20"
+                        VerticalAlignment="Top">
+                    <StackPanel x:Name="NumbersContainer"
+                                Spacing="12"/>
+                </Border>
+            </Grid>
+
+            <!-- Validación -->
+            <StackPanel x:Name="ValidationContainer"
+                        Orientation="Horizontal"
+                        HorizontalAlignment="Center"
+                        Spacing="10"
+                        IsVisible="False">
+                <Button x:Name="CheckButton"
+                        Content="Comprobar"
+                        Background="#B35AFF"
+                        Foreground="White"
+                        FontSize="16"
+                        FontWeight="SemiBold"
+                        Padding="16,8"
+                        CornerRadius="14"
+                        BorderThickness="0"/>
+                <TextBlock x:Name="ValidationMessage"
+                           VerticalAlignment="Center"
+                           FontSize="16"
+                           FontWeight="SemiBold"
+                           Foreground="#7CDAF3"/>
+            </StackPanel>
+            
+        </StackPanel>
+    </Border>
+
+</UserControl>
