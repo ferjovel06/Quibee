@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -71,10 +72,21 @@ public partial class HeadingContentControl : UserControl
         // Para headings de nivel 3, usar borde más sutil
         if (ContentData.Level == 3)
         {
+            var isExampleOne = (ContentData.Text ?? string.Empty)
+                .StartsWith("Ejemplo 1", StringComparison.OrdinalIgnoreCase);
+
             border.Background = Brushes.Transparent;
-            border.BorderThickness = new Thickness(0);
+            border.BorderBrush = new SolidColorBrush(Color.Parse("#7CDAF3"));
+            border.BorderThickness = isExampleOne ? new Thickness(0) : new Thickness(0, 2, 0, 0);
             border.CornerRadius = new CornerRadius(0);
-            border.Padding = new Thickness(0);
+            border.Padding = isExampleOne ? new Thickness(0) : new Thickness(0, 10, 0, 0);
+            border.Margin = isExampleOne ? new Thickness(0, 8, 0, 8) : new Thickness(0, 24, 0, 8);
+
+            textBlock.FontSize = 22;
+            if (string.IsNullOrEmpty(ContentData.Color))
+            {
+                textBlock.Foreground = new SolidColorBrush(Color.Parse("#7CDAF3"));
+            }
         }
     }
 }

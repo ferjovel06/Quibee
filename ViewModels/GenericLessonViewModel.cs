@@ -78,7 +78,7 @@ public class GenericLessonViewModel : ViewModelBase
                         Sections.Add(new LessonSection
                         {
                             Name = CapitalizeSectionName(sectionName),
-                            Content = "", // No usaremos este campo
+                            Content = sectionName, // Clave real de la sección en BD
                             IconPathLight = lightIcon,
                             IconPathDark = darkIcon,
                             IsSelected = false
@@ -150,7 +150,7 @@ public class GenericLessonViewModel : ViewModelBase
                 "avares://Quibee/Assets/Images/Icons/BulbLight.png",
                 "avares://Quibee/Assets/Images/Icons/BulbDark.png"
             ),
-            "analicemos" => (
+            var key when key.StartsWith("analicemos") => (
                 "avares://Quibee/Assets/Images/Icons/BrainLight.png",
                 "avares://Quibee/Assets/Images/Icons/BrainDark.png"
             ),
@@ -180,8 +180,9 @@ public class GenericLessonViewModel : ViewModelBase
     {
         if (string.IsNullOrEmpty(sectionKey))
             return "";
-        
-        return char.ToUpper(sectionKey[0]) + sectionKey.Substring(1).ToLower();
+
+        var normalized = sectionKey.Replace('_', ' ').ToLower();
+        return char.ToUpper(normalized[0]) + normalized.Substring(1);
     }
 
     // Propiedades de la lección
@@ -289,7 +290,9 @@ public class GenericLessonViewModel : ViewModelBase
             CurrentSection = section;
             
             // Cargar contenido de la nueva sección y registrar la visita
-            var sectionKey = section.Name.ToLower();
+            var sectionKey = string.IsNullOrWhiteSpace(section.Content)
+                ? section.Name.ToLower().Replace(' ', '_')
+                : section.Content;
             _ = LoadSectionContentAndTrackAsync(sectionKey);
         }
     }

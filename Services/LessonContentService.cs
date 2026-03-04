@@ -126,9 +126,32 @@ public class LessonContentService
             .Select(g => new { SectionType = g.Key, MinId = -g.Min(x => x.IdExercise) })
             .ToListAsync();
 
+        static (int rank, int subRank) GetSectionOrder(string sectionType)
+        {
+            if (sectionType.Equals("introduccion", StringComparison.OrdinalIgnoreCase)) return (1, 0);
+
+            if (sectionType.StartsWith("analicemos", StringComparison.OrdinalIgnoreCase))
+            {
+                var parts = sectionType.Split('_');
+                if (parts.Length > 1 && int.TryParse(parts[1], out var num))
+                {
+                    return (2, num);
+                }
+
+                return (2, 0);
+            }
+
+            if (sectionType.Equals("practiquemos", StringComparison.OrdinalIgnoreCase)) return (3, 0);
+            if (sectionType.Equals("resolvamos", StringComparison.OrdinalIgnoreCase)) return (4, 0);
+            if (sectionType.Equals("desafio", StringComparison.OrdinalIgnoreCase)) return (5, 0);
+            return (int.MaxValue, int.MaxValue);
+        }
+
         return fromContent
             .Concat(fromExercises)
-            .OrderBy(x => x.MinId)
+            .OrderBy(x => GetSectionOrder(x.SectionType).rank)
+            .ThenBy(x => GetSectionOrder(x.SectionType).subRank)
+            .ThenBy(x => x.MinId)
             .Select(x => x.SectionType)
             .ToList();
     }

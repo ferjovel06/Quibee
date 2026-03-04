@@ -47,6 +47,15 @@ public class LessonContentData
     [JsonPropertyName("correctAnswer")]
     public int? CorrectAnswer { get; set; }
 
+    [JsonPropertyName("correctAnswers")]
+    public List<int>? CorrectAnswers { get; set; }
+
+    [JsonPropertyName("correctTextAnswer")]
+    public string? CorrectTextAnswer { get; set; }
+
+    [JsonPropertyName("correctTextAnswers")]
+    public List<string>? CorrectTextAnswers { get; set; }
+
     // Propiedades para imágenes
     [JsonPropertyName("imageUrl")]
     public string? ImageUrl { get; set; }
@@ -60,6 +69,9 @@ public class LessonContentData
     // Propiedades para draggable_numbers
     [JsonPropertyName("numbers")]
     public List<int>? Numbers { get; set; }
+
+    [JsonPropertyName("symbols")]
+    public List<string>? Symbols { get; set; }
 
     [JsonPropertyName("colors")]
     public List<string>? Colors { get; set; }
@@ -79,6 +91,9 @@ public class LessonContentData
 
     [JsonPropertyName("numberImageHeight")]
     public int? NumberImageHeight { get; set; }
+
+    [JsonPropertyName("allowAnyOrder")]
+    public bool? AllowAnyOrder { get; set; }
 }
 
 /// <summary>

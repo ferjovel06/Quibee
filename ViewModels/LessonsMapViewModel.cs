@@ -151,6 +151,8 @@ public class LessonsMapViewModel : ViewModelBase
                 .Select(topic => MapTopicToThemeData(topic, topic.OrderIndex, lessonProgressMap))
                 .ToList();
 
+            ApplyNodeStates(themesData);
+
             // ===== Actualizar colección NODES (nueva arquitectura) =====
             Nodes.Clear();
             _nodeCache.Clear(); // Limpiar cache antes de repoblar
@@ -214,7 +216,6 @@ public class LessonsMapViewModel : ViewModelBase
         int themeNumber,
         IReadOnlyDictionary<int, int> lessonProgressMap)
     {
-        var iconPath = topic.Icon ?? "avares://Quibee/Assets/Images/SmallStar.png";
         var (positionX, positionY) = GetPatternPosition(themeNumber);
         var firstLessonId = topic.Lessons
             .Where(l => l.IsActive)
@@ -229,7 +230,7 @@ public class LessonsMapViewModel : ViewModelBase
             ThemeNumber = themeNumber,
             Title = topic.TopicName,
             Description = topic.Description ?? string.Empty,
-            ImagePath = iconPath,
+            ImagePath = topic.Icon ?? "avares://Quibee/Assets/Images/SmallStar.png",
             ImageWidth = topic.IconWidth,
             ImageHeight = topic.IconHeight,
             PositionX = positionX,
@@ -240,6 +241,48 @@ public class LessonsMapViewModel : ViewModelBase
             LessonId = firstLessonId,
             LessonProgressPercentage = lessonProgressPercentage
         };
+    }
+
+    private static void ApplyNodeStates(List<ThemeData> themes)
+    {
+        if (themes.Count == 0)
+        {
+            return;
+        }
+
+        var orderedThemes = themes
+            .OrderBy(t => t.ThemeNumber)
+            .ToList();
+
+        var currentAssigned = false;
+
+        foreach (var theme in orderedThemes)
+        {
+            if (theme.LessonProgressPercentage >= 100)
+            {
+                theme.NodeState = "completed";
+                theme.ImagePath = "avares://Quibee/Assets/Images/Check.png";
+                theme.ImageWidth = 76;
+                theme.ImageHeight = 76;
+                continue;
+            }
+
+            if (!currentAssigned)
+            {
+                theme.NodeState = "current";
+                theme.ImagePath = "avares://Quibee/Assets/Images/PurpleStar.png";
+                theme.ImageWidth = 76;
+                theme.ImageHeight = 76;
+                currentAssigned = true;
+            }
+            else
+            {
+                theme.NodeState = "locked";
+                theme.ImagePath = "avares://Quibee/Assets/Images/Lock.png";
+                theme.ImageWidth = 76;
+                theme.ImageHeight = 76;
+            }
+        }
     }
 
     private static (double X, double Y) GetPatternPosition(int themeNumber)
@@ -307,6 +350,11 @@ public class LessonsMapViewModel : ViewModelBase
     /// </summary>
     private async Task OnTemaClickAsync(ThemeData theme)
     {
+        if (theme.IsLocked)
+        {
+            return;
+        }
+
         var topic = await _topicService.GetTopicByIdAsync(theme.TopicId);
         if (topic == null)
         {

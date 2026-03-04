@@ -72,6 +72,24 @@ public class MatchingRow
     [JsonPropertyName("correctAnswer")]
     public int CorrectAnswer { get; set; }
 
+    [JsonPropertyName("rightImageUrl")]
+    public string? RightImageUrl { get; set; }
+
+    [JsonPropertyName("rightEmoji")]
+    public string? RightEmoji { get; set; }
+
+    [JsonPropertyName("rightCount")]
+    public int? RightCount { get; set; }
+
+    [JsonPropertyName("rightImageWidth")]
+    public int? RightImageWidth { get; set; }
+
+    [JsonPropertyName("rightImageHeight")]
+    public int? RightImageHeight { get; set; }
+
+    [JsonPropertyName("correctSymbolAnswer")]
+    public string? CorrectSymbolAnswer { get; set; }
+
     /// <summary>
     /// Ancho de cada imagen en la fila (opcional)
     /// </summary>
