@@ -15,6 +15,7 @@ public static class ServiceLocator
     private static DataSeederService? _dataSeederService;
     private static LessonContentService? _lessonContentService;
     private static LessonProgressService? _lessonProgressService;
+    private static AppUpdateService? _appUpdateService;
 
     /// <summary>
     /// Obtiene la instancia del DbContext (singleton)
@@ -65,6 +66,12 @@ public static class ServiceLocator
         return _lessonProgressService;
     }
 
+    public static AppUpdateService GetAppUpdateService()
+    {
+        _appUpdateService ??= new AppUpdateService();
+        return _appUpdateService;
+    }
+
     /// <summary>
     /// Libera recursos
     /// </summary>
@@ -76,5 +83,6 @@ public static class ServiceLocator
         _dataSeederService = null;
         _lessonContentService = null;
         _lessonProgressService = null;
+        _appUpdateService = null;
     }
 }

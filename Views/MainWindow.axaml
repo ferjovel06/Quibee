@@ -8,6 +8,7 @@
         x:Class="Quibee.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Matemáticas con QUIBEE"
+        Icon="/Assets/Images/MainLogo.png"
         Width="1024" Height="768"
         WindowStartupLocation="CenterScreen">
 

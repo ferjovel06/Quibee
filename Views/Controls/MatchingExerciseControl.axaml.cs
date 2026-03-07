@@ -37,6 +37,7 @@ public partial class MatchingExerciseControl : UserControl
     /// </summary>
     private readonly List<Border> _numberTiles = new();
     private readonly List<Border> _symbolTiles = new();
+    private Border? _selectedOptionTile;
 
     private bool IsSequenceGridMode() =>
         string.Equals(ContentData?.Layout, "sequence_grid", StringComparison.OrdinalIgnoreCase);
@@ -99,6 +100,8 @@ public partial class MatchingExerciseControl : UserControl
         var validationContainer = this.FindControl<StackPanel>("ValidationContainer");
 
         if (rowsContainer == null || numbersContainer == null) return;
+
+        var safeNumbersContainer = numbersContainer ?? throw new InvalidOperationException("NumbersContainer not found");
 
         rowsContainer.Children.Clear();
         numbersContainer.Children.Clear();
@@ -275,13 +278,13 @@ public partial class MatchingExerciseControl : UserControl
         }
 
         // Crear números arrastrables (mezclados)
-        var answers = ContentData.Rows.Select(r => r.CorrectAnswer).ToList();
+        var answers = ContentData!.Rows!.Select(r => r.CorrectAnswer).ToList();
         var shuffled = ShuffleList(answers);
 
         foreach (var number in shuffled)
         {
             var tile = CreateNumberTile(number);
-            numbersContainer.Children.Add(tile);
+            safeNumbersContainer.Children.Add(tile);
             _numberTiles.Add(tile);
         }
 
@@ -485,6 +488,8 @@ public partial class MatchingExerciseControl : UserControl
         Grid? mainLayoutGrid,
         StackPanel? validationContainer)
     {
+        var isSelectOnly = ContentData?.SelectOnly == true;
+
         if (instructionText != null)
         {
             instructionText.IsVisible = false;
@@ -547,15 +552,18 @@ public partial class MatchingExerciseControl : UserControl
             rowsContainer.Children.Add(comparePanel);
         }
 
-        rowsContainer.Children.Add(new TextBlock
+        if (ContentData?.ShowOrderPrompt != false)
         {
-            Text = "Ordena tu respuesta:",
-            FontSize = 20,
-            FontWeight = FontWeight.SemiBold,
-            Foreground = Brushes.White,
-            HorizontalAlignment = HorizontalAlignment.Center,
-            TextAlignment = TextAlignment.Center
-        });
+            rowsContainer.Children.Add(new TextBlock
+            {
+                Text = "Ordena tu respuesta:",
+                FontSize = 20,
+                FontWeight = FontWeight.SemiBold,
+                Foreground = Brushes.White,
+                HorizontalAlignment = HorizontalAlignment.Center,
+                TextAlignment = TextAlignment.Center
+            });
+        }
 
         var slotsRow = new StackPanel
         {
@@ -564,6 +572,9 @@ public partial class MatchingExerciseControl : UserControl
             HorizontalAlignment = HorizontalAlignment.Center
         };
 
+        bool hasPromptRows = ContentData?.Rows != null && ContentData.Rows.Any(r =>
+            !string.IsNullOrWhiteSpace(r.PromptText) || !string.IsNullOrWhiteSpace(r.FixedSymbol));
+
         if (ContentData?.Rows != null)
         {
             for (int i = 0; i < ContentData.Rows.Count; i++)
@@ -571,11 +582,40 @@ public partial class MatchingExerciseControl : UserControl
                 var row = ContentData.Rows[i];
                 _placedSymbols[i] = null;
                 _correctSymbolAnswers[i] = row.CorrectSymbolAnswer ?? string.Empty;
-                slotsRow.Children.Add(CreateOrderTokenSlot(i));
+
+                if (hasPromptRows && !isSelectOnly)
+                {
+                    rowsContainer.Children.Add(CreateOrderTokenPromptRow(i, row));
+                }
+                else if (!isSelectOnly)
+                {
+                    slotsRow.Children.Add(CreateOrderTokenSlot(i));
+                }
             }
         }
 
-        rowsContainer.Children.Add(slotsRow);
+        if (!hasPromptRows && !isSelectOnly)
+        {
+            rowsContainer.Children.Add(slotsRow);
+        }
+
+        if (isSelectOnly && ContentData?.Rows != null && ContentData.Rows.Count > 0)
+        {
+            var row = ContentData.Rows[0];
+            if (!string.IsNullOrWhiteSpace(row.PromptText))
+            {
+                rowsContainer.Children.Add(new TextBlock
+                {
+                    Text = row.PromptText,
+                    FontSize = 20,
+                    FontWeight = FontWeight.SemiBold,
+                    Foreground = Brushes.White,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    TextAlignment = TextAlignment.Center,
+                    Margin = new Thickness(0, 0, 0, 6)
+                });
+            }
+        }
 
         numbersContainer.Children.Clear();
 
@@ -583,21 +623,49 @@ public partial class MatchingExerciseControl : UserControl
             ? ContentData.Symbols
             : new List<string> { "3", "5", "<", ">" };
 
-        var tokensContainer = new StackPanel
+        if (isSelectOnly)
         {
-            Spacing = 10,
-            Orientation = Orientation.Horizontal,
-            HorizontalAlignment = HorizontalAlignment.Center
-        };
+            var rowsNeeded = (int)Math.Ceiling(options.Count / 2.0);
+            var optionsGrid = new Grid
+            {
+                ColumnDefinitions = ColumnDefinitions.Parse("Auto,Auto"),
+                RowDefinitions = RowDefinitions.Parse(string.Join(",", Enumerable.Repeat("Auto", Math.Max(1, rowsNeeded)))),
+                HorizontalAlignment = HorizontalAlignment.Center,
+                Margin = new Thickness(0, 6, 0, 0),
+                ColumnSpacing = 16,
+                RowSpacing = 12
+            };
 
-        foreach (var token in options)
-        {
-            var tile = CreateSymbolTile(token);
-            tokensContainer.Children.Add(tile);
-            _symbolTiles.Add(tile);
+            for (var i = 0; i < options.Count; i++)
+            {
+                var tile = CreateSymbolTile(options[i]);
+                tile.Margin = new Thickness(2);
+                Grid.SetColumn(tile, i % 2);
+                Grid.SetRow(tile, i / 2);
+                optionsGrid.Children.Add(tile);
+                _symbolTiles.Add(tile);
+            }
+
+            rowsContainer.Children.Add(optionsGrid);
         }
+        else
+        {
+            var tokensContainer = new StackPanel
+            {
+                Spacing = 10,
+                Orientation = Orientation.Horizontal,
+                HorizontalAlignment = HorizontalAlignment.Center
+            };
 
-        rowsContainer.Children.Add(tokensContainer);
+            foreach (var token in options)
+            {
+                var tile = CreateSymbolTile(token);
+                tokensContainer.Children.Add(tile);
+                _symbolTiles.Add(tile);
+            }
+
+            rowsContainer.Children.Add(tokensContainer);
+        }
 
         if (validationContainer != null)
         {
@@ -605,11 +673,82 @@ public partial class MatchingExerciseControl : UserControl
         }
     }
 
+    private Border CreateOrderTokenPromptRow(int rowIndex, MatchingRow row)
+    {
+        var rowBorder = new Border
+        {
+            Width = 420,
+            BorderBrush = new SolidColorBrush(Color.Parse("#8D8D8D")),
+            BorderThickness = new Thickness(1),
+            Background = Brushes.Transparent,
+            Padding = new Thickness(12, 8),
+            Margin = new Thickness(0, 0, 0, 6)
+        };
+
+        var rowPanel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Stretch,
+            VerticalAlignment = VerticalAlignment.Center,
+            Spacing = 10
+        };
+
+        var prompt = new TextBlock
+        {
+            Text = row.PromptText ?? string.Empty,
+            FontSize = 16,
+            FontWeight = FontWeight.SemiBold,
+            Foreground = Brushes.White,
+            VerticalAlignment = VerticalAlignment.Center,
+            Width = 160,
+            TextAlignment = TextAlignment.Left
+        };
+
+        rowPanel.Children.Add(prompt);
+
+        var fixedPosition = (row.FixedSymbolPosition ?? "left").ToLowerInvariant();
+        var slot = CreateOrderTokenSlot(rowIndex);
+
+        if (!string.IsNullOrWhiteSpace(row.FixedSymbol) && fixedPosition == "left")
+        {
+            rowPanel.Children.Add(CreateFixedToken(row.FixedSymbol!));
+            rowPanel.Children.Add(slot);
+        }
+        else if (!string.IsNullOrWhiteSpace(row.FixedSymbol) && fixedPosition == "right")
+        {
+            rowPanel.Children.Add(slot);
+            rowPanel.Children.Add(CreateFixedToken(row.FixedSymbol!));
+        }
+        else
+        {
+            rowPanel.Children.Add(slot);
+        }
+
+        rowBorder.Child = rowPanel;
+        return rowBorder;
+    }
+
+    private Border CreateFixedToken(string symbol)
+    {
+        var token = new Border
+        {
+            Width = symbol.All(char.IsDigit) && symbol.Length > 1 ? 86 : 54,
+            Height = 54,
+            Background = Brushes.Transparent,
+            Child = CreateSymbolContent(symbol, forDropTarget: false),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+
+        return token;
+    }
+
     private Border CreateOrderTokenSlot(int rowIndex)
     {
+        var slotWidth = GetOrderTokenSlotWidth();
+
         var dropBorder = new Border
         {
-            Width = 56,
+            Width = slotWidth,
             Height = 56,
             Background = new SolidColorBrush(Color.Parse("#EDEDED")),
             BorderBrush = new SolidColorBrush(Color.Parse("#8D8D8D")),
@@ -628,6 +767,20 @@ public partial class MatchingExerciseControl : UserControl
 
         _dropTargets[rowIndex] = dropBorder;
         return dropBorder;
+    }
+
+    private int GetOrderTokenSlotWidth()
+    {
+        var maxLen = ContentData?.Symbols?
+            .Where(s => !string.IsNullOrWhiteSpace(s))
+            .Select(s => s.Length)
+            .DefaultIfEmpty(2)
+            .Max() ?? 2;
+
+        if (maxLen >= 7) return 180;
+        if (maxLen >= 5) return 140;
+        if (maxLen >= 3) return 110;
+        return 88;
     }
 
     private Border CreateOperatorCompareRow(int rowIndex, MatchingRow row, bool compactMode)
@@ -1082,61 +1235,245 @@ public partial class MatchingExerciseControl : UserControl
 
     private Border CreateSymbolTile(string symbol)
     {
+        var isNumericToken = symbol.All(char.IsDigit);
+        var isLongTextToken = !isNumericToken && symbol.Length >= 5;
+
         var tile = new Border
         {
-            Width = 54,
-            Height = 54,
+            Width = isNumericToken
+                ? (symbol.Length > 1 ? 98 : 62)
+                : (isLongTextToken ? Math.Min(230, Math.Max(148, 20 * symbol.Length)) : 62),
+            Height = 62,
             Background = Brushes.Transparent,
             CornerRadius = new CornerRadius(0),
             Cursor = new Cursor(StandardCursorType.Hand),
+            Padding = new Thickness(2),
             Tag = symbol
         };
 
-        if (int.TryParse(symbol, out var numericToken))
+        tile.Child = CreateSymbolContent(symbol, forDropTarget: false);
+
+        if (ContentData?.SelectOnly != true)
         {
-            var numberImage = GetNumberImage(numericToken, 38, 54);
-            if (numberImage != null)
+            tile.PointerPressed += OnNumberTilePointerPressed;
+        }
+
+        tile.PointerReleased += OnSymbolTilePointerReleased;
+        return tile;
+    }
+
+    private void OnSymbolTilePointerReleased(object? sender, PointerReleasedEventArgs e)
+    {
+        if (sender is not Border tile) return;
+        if (!IsOrderTokensMode()) return;
+        if (!tile.IsVisible) return;
+        if (tile.Tag is not string symbol) return;
+
+        if (ContentData?.SelectOnly == true && _placedSymbols.Count > 0)
+        {
+            var rowIndex = _placedSymbols.Keys.Min();
+            _placedSymbols[rowIndex] = symbol;
+
+            if (_selectedOptionTile != null)
             {
-                tile.Child = numberImage;
+                _selectedOptionTile.BorderThickness = new Thickness(0);
+                _selectedOptionTile.BorderBrush = Brushes.Transparent;
             }
-            else
+
+            tile.BorderThickness = new Thickness(2);
+            tile.BorderBrush = new SolidColorBrush(Color.Parse("#65E4A3"));
+            _selectedOptionTile = tile;
+
+            ClearValidation();
+            e.Handled = true;
+            return;
+        }
+
+        // Modo opción múltiple: si hay una sola casilla, clic = seleccionar opción.
+        if (_dropTargets.Count == 1)
+        {
+            var rowIndex = _dropTargets.Keys.Min();
+            PlaceSymbolInRow(rowIndex, symbol, tile);
+            e.Handled = true;
+        }
+    }
+
+    private void PlaceSymbolInRow(int rowIndex, string symbol, Border? sourceTile)
+    {
+        if (!_placedSymbols.ContainsKey(rowIndex))
+        {
+            return;
+        }
+
+        if (!string.IsNullOrEmpty(_placedSymbols[rowIndex]))
+        {
+            ReturnSymbolToPool(_placedSymbols[rowIndex]!);
+        }
+
+        _placedSymbols[rowIndex] = symbol;
+
+        if (_dropTargets.TryGetValue(rowIndex, out var dropTarget))
+        {
+            dropTarget.Child = CreateSymbolContent(symbol, forDropTarget: true);
+            ApplyFilledDropStyle(dropTarget);
+        }
+
+        if (sourceTile != null)
+        {
+            sourceTile.IsVisible = false;
+        }
+
+        ClearValidation();
+    }
+
+    private Control CreateSymbolContent(string symbol, bool forDropTarget)
+    {
+        if (symbol.All(char.IsDigit))
+        {
+            var numericPanel = CreateNumericTokenPanel(
+                symbol,
+                forDropTarget ? 76 : 82,
+                forDropTarget ? 44 : 50);
+
+            if (numericPanel != null)
             {
-                tile.Child = new TextBlock
-                {
-                    Text = symbol,
-                    FontSize = 44,
-                    FontWeight = FontWeight.Bold,
-                    Foreground = Brushes.White,
-                    HorizontalAlignment = HorizontalAlignment.Center,
-                    VerticalAlignment = VerticalAlignment.Center,
-                    FontFamily = FontFamily.Parse("avares://Quibee/Assets/Fonts/Poppins-SemiBold.ttf#Poppins")
-                };
+                return numericPanel;
             }
         }
-        else
+
+        var compositeTokenPanel = CreateCompositeTokenPanel(symbol, forDropTarget);
+        if (compositeTokenPanel != null)
         {
-            var color = symbol switch
+            return compositeTokenPanel;
+        }
+
+        var symbolImage = GetSymbolImage(symbol, forDropTarget ? 30 : 36, forDropTarget ? 30 : 36);
+        if (symbolImage != null)
+        {
+            return symbolImage;
+        }
+
+        var color = symbol switch
+        {
+            "<" => "#F29A2E",
+            ">" => "#22B7E9",
+            "=" => "#B5473B",
+            _ => forDropTarget ? "#000000" : "#FFFFFF"
+        };
+
+        var useCompactText = symbol.Length >= 5;
+
+        return new TextBlock
+        {
+            Text = symbol,
+            FontSize = useCompactText ? (forDropTarget ? 22 : 24) : (forDropTarget ? 34 : 48),
+            FontWeight = FontWeight.Bold,
+            Foreground = new SolidColorBrush(Color.Parse(color)),
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            TextAlignment = TextAlignment.Center,
+            FontFamily = FontFamily.Parse("avares://Quibee/Assets/Fonts/Poppins-SemiBold.ttf#Poppins")
+        };
+    }
+
+    private Control? CreateNumericTokenPanel(string symbol, int totalWidth, int totalHeight)
+    {
+        if (string.IsNullOrWhiteSpace(symbol) || !symbol.All(char.IsDigit))
+        {
+            return null;
+        }
+
+        var panel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Spacing = 2
+        };
+
+        var digitsCount = symbol.Length;
+        var digitWidth = Math.Max(14, (totalWidth - ((digitsCount - 1) * 2)) / Math.Max(1, digitsCount));
+
+        foreach (var digitChar in symbol)
+        {
+            var digit = digitChar - '0';
+            var digitImage = GetNumberImage(digit, digitWidth, totalHeight);
+            if (digitImage == null)
             {
-                "<" => "#F29A2E",
-                ">" => "#22B7E9",
-                "=" => "#B5473B",
+                return null;
+            }
+
+            panel.Children.Add(digitImage);
+        }
+
+        return panel;
+    }
+
+    private Control? CreateCompositeTokenPanel(string symbol, bool forDropTarget)
+    {
+        if (string.IsNullOrWhiteSpace(symbol))
+        {
+            return null;
+        }
+
+        var cleaned = symbol.Replace(" ", string.Empty);
+        if (!cleaned.Any(char.IsDigit))
+        {
+            return null;
+        }
+
+        foreach (var c in cleaned)
+        {
+            if (!char.IsDigit(c) && c != '+' && c != '-' && c != '=')
+            {
+                return null;
+            }
+        }
+
+        var panel = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Spacing = 2
+        };
+
+        foreach (var c in cleaned)
+        {
+            if (char.IsDigit(c))
+            {
+                var digit = c - '0';
+                var digitImage = GetNumberImage(digit, forDropTarget ? 16 : 22, forDropTarget ? 30 : 38);
+                if (digitImage == null)
+                {
+                    return null;
+                }
+
+                panel.Children.Add(digitImage);
+                continue;
+            }
+
+            var color = c switch
+            {
+                '+' => "#55C4E8",
+                '-' => "#F29A2E",
+                '=' => "#9B86D1",
                 _ => "#FFFFFF"
             };
 
-            tile.Child = new TextBlock
+            panel.Children.Add(new TextBlock
             {
-                Text = symbol,
-                FontSize = 48,
+                Text = c.ToString(),
+                FontSize = forDropTarget ? 22 : 30,
                 FontWeight = FontWeight.Bold,
                 Foreground = new SolidColorBrush(Color.Parse(color)),
-                HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
+                HorizontalAlignment = HorizontalAlignment.Center,
                 FontFamily = FontFamily.Parse("avares://Quibee/Assets/Fonts/Poppins-SemiBold.ttf#Poppins")
-            };
+            });
         }
 
-        tile.PointerPressed += OnNumberTilePointerPressed;
-        return tile;
+        return panel;
     }
 
     /// <summary>
@@ -1218,32 +1555,7 @@ public partial class MatchingExerciseControl : UserControl
         {
             var symbol = (string)e.Data.Get("Symbol")!;
 
-            if (!string.IsNullOrEmpty(_placedSymbols[rowIndex]))
-            {
-                ReturnSymbolToPool(_placedSymbols[rowIndex]!);
-            }
-
-            _placedSymbols[rowIndex] = symbol;
-
-            dropTarget.Child = new TextBlock
-            {
-                Text = symbol,
-                FontSize = 34,
-                FontWeight = FontWeight.Bold,
-                Foreground = Brushes.Black,
-                HorizontalAlignment = HorizontalAlignment.Center,
-                VerticalAlignment = VerticalAlignment.Center,
-                FontFamily = FontFamily.Parse("avares://Quibee/Assets/Fonts/Poppins-SemiBold.ttf#Poppins")
-            };
-
-            ApplyFilledDropStyle(dropTarget);
-
-            if (sourceTile != null)
-            {
-                sourceTile.IsVisible = false;
-            }
-
-            ClearValidation();
+            PlaceSymbolInRow(rowIndex, symbol, sourceTile);
             return;
         }
 
@@ -1485,7 +1797,9 @@ public partial class MatchingExerciseControl : UserControl
 
             if (allCorrectSymbols)
             {
-                validationMessage.Text = "¡Excelente! Todos los operadores son correctos 🎉";
+                validationMessage.Text = IsOrderTokensMode()
+                    ? "¡Excelente! Todas las respuestas son correctas 🎉"
+                    : "¡Excelente! Todos los operadores son correctos 🎉";
                 validationMessage.Foreground = new SolidColorBrush(Color.Parse("#65E4A3"));
             }
             else

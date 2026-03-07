@@ -86,3 +86,34 @@ dotnet run
 ```
 
 El DataSeeder se ejecutará automáticamente en el primer inicio y poblará la base de datos con datos iniciales (3 grados, 15 temas, ejemplos de lecciones).
+
+## 🔄 Auto-actualización (Windows)
+
+La app está preparada para actualizarse desde GitHub Releases usando Velopack.
+
+1. Configura `appsettings.json`:
+
+```json
+"AutoUpdate": {
+  "Enabled": true,
+  "CheckOnStartup": true,
+  "GithubRepoUrl": "https://github.com/TU_USUARIO/TU_REPO"
+}
+```
+
+2. Instala la herramienta de empaquetado:
+
+```bash
+dotnet tool install -g vpk
+```
+
+3. Publica binarios y crea paquete Velopack:
+
+```bash
+dotnet publish -c Release -r win-x64 --self-contained true
+vpk pack --packId Quibee --packVersion 1.0.0 --packDir bin/Release/net9.0/win-x64/publish --mainExe Quibee.exe --outputDir releases
+```
+
+4. Sube el contenido de `releases` a un Release de GitHub.
+
+En el siguiente inicio, la app verificará actualizaciones y pedirá confirmación para descargar e instalar.

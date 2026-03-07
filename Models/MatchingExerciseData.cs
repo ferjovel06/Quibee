@@ -48,6 +48,15 @@ public class MatchingExerciseData
 /// </summary>
 public class MatchingRow
 {
+    [JsonPropertyName("promptText")]
+    public string? PromptText { get; set; }
+
+    [JsonPropertyName("fixedSymbol")]
+    public string? FixedSymbol { get; set; }
+
+    [JsonPropertyName("fixedSymbolPosition")]
+    public string? FixedSymbolPosition { get; set; } // left or right
+
     /// <summary>
     /// URL de la imagen (avares://...) que se repite
     /// </summary>

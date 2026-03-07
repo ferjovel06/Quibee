@@ -388,15 +388,14 @@ public partial class VisualExampleControl : UserControl
                 Margin = new Thickness(10, 0)
             };
 
-            var answerImage = new Image
+            var answerImagesPanel = new StackPanel
             {
                 IsVisible = false,
                 IsHitTestVisible = false,
+                Orientation = Orientation.Horizontal,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center,
-                Width = Math.Max(20, (obj.Width ?? 80) - 14),
-                Height = Math.Max(20, (obj.Height ?? 80) - 14),
-                Stretch = Stretch.Uniform
+                Spacing = 2
             };
 
             var answerInput = new TextBox
@@ -417,19 +416,19 @@ public partial class VisualExampleControl : UserControl
 
             answerInput.TextChanged += (_, _) =>
             {
-                UpdateAnswerBoxVisual(answerInput, answerImage);
+                UpdateAnswerBoxVisual(answerInput, answerImagesPanel, obj.Width ?? 80, obj.Height ?? 80);
             };
 
             answerInput.KeyUp += (_, _) =>
             {
-                UpdateAnswerBoxVisual(answerInput, answerImage);
+                UpdateAnswerBoxVisual(answerInput, answerImagesPanel, obj.Width ?? 80, obj.Height ?? 80);
             };
 
             answerInput.PropertyChanged += (_, e) =>
             {
                 if (e.Property == TextBox.TextProperty)
                 {
-                    Dispatcher.UIThread.Post(() => UpdateAnswerBoxVisual(answerInput, answerImage));
+                    Dispatcher.UIThread.Post(() => UpdateAnswerBoxVisual(answerInput, answerImagesPanel, obj.Width ?? 80, obj.Height ?? 80));
                 }
             };
 
@@ -453,7 +452,7 @@ public partial class VisualExampleControl : UserControl
 
             var inputLayer = new Grid();
             inputLayer.Children.Add(answerInput);
-            inputLayer.Children.Add(answerImage);
+            inputLayer.Children.Add(answerImagesPanel);
 
             border.Child = inputLayer;
             return border;
@@ -594,11 +593,12 @@ public partial class VisualExampleControl : UserControl
         };
     }
 
-    private void UpdateAnswerBoxVisual(TextBox answerInput, Image answerImage)
+    private void UpdateAnswerBoxVisual(TextBox answerInput, StackPanel answerImagesPanel, int boxWidth, int boxHeight)
     {
         if (_expectsTextAnswers)
         {
-            answerImage.IsVisible = false;
+            answerImagesPanel.IsVisible = false;
+            answerImagesPanel.Children.Clear();
             answerInput.Foreground = new SolidColorBrush(Color.Parse("#FFFFFF"));
             answerInput.CaretBrush = new SolidColorBrush(Color.Parse("#FFFFFF"));
             return;
@@ -606,23 +606,37 @@ public partial class VisualExampleControl : UserControl
 
         var text = answerInput.Text?.Trim();
 
-        if (!string.IsNullOrEmpty(text) && text.Length == 1 && char.IsDigit(text[0]))
+        if (!string.IsNullOrEmpty(text) && text.All(char.IsDigit))
         {
-            var number = text[0] - '0';
-            var imageUrl = string.Format(DefaultNumberImagePattern, number);
-            var numberImage = CreateImage(imageUrl, (int)answerImage.Width, (int)answerImage.Height);
+            answerImagesPanel.Children.Clear();
 
-            if (numberImage != null)
+            var digitCount = text.Length;
+            var targetWidth = Math.Max(18, (boxWidth - 14 - ((digitCount - 1) * 2)) / Math.Max(1, digitCount));
+            var targetHeight = Math.Max(22, boxHeight - 16);
+
+            foreach (var ch in text)
             {
-                answerImage.Source = numberImage.Source;
-                answerImage.IsVisible = true;
+                var number = ch - '0';
+                var imageUrl = string.Format(DefaultNumberImagePattern, number);
+                var numberImage = CreateImage(imageUrl, targetWidth, targetHeight);
+
+                if (numberImage != null)
+                {
+                    answerImagesPanel.Children.Add(numberImage);
+                }
+            }
+
+            if (answerImagesPanel.Children.Count > 0)
+            {
+                answerImagesPanel.IsVisible = true;
                 answerInput.Foreground = Brushes.Transparent;
                 answerInput.CaretBrush = Brushes.Transparent;
                 return;
             }
         }
 
-        answerImage.IsVisible = false;
+        answerImagesPanel.IsVisible = false;
+        answerImagesPanel.Children.Clear();
         answerInput.Foreground = new SolidColorBrush(Color.Parse("#FFFFFF"));
         answerInput.CaretBrush = new SolidColorBrush(Color.Parse("#FFFFFF"));
     }

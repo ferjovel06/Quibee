@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using Quibee.Views;
@@ -26,6 +27,8 @@ public partial class App : Application
             {
                 DataContext = new MainWindowViewModel()
             };
+
+            _ = CheckForUpdatesAsync(desktop.MainWindow);
         }
 
         base.OnFrameworkInitializationCompleted();
@@ -52,6 +55,19 @@ public partial class App : Application
         {
             Console.WriteLine($"❌ Error inicializando base de datos: {ex.Message}");
             Console.WriteLine($"   Stack: {ex.StackTrace}");
+        }
+    }
+
+    private async Task CheckForUpdatesAsync(Window? owner)
+    {
+        try
+        {
+            var updateService = ServiceLocator.GetAppUpdateService();
+            await updateService.CheckForUpdatesAsync(owner);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"⚠️ Error en verificación de actualización: {ex.Message}");
         }
     }
 }

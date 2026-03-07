@@ -94,6 +94,12 @@ public class LessonContentData
 
     [JsonPropertyName("allowAnyOrder")]
     public bool? AllowAnyOrder { get; set; }
+
+    [JsonPropertyName("showOrderPrompt")]
+    public bool? ShowOrderPrompt { get; set; }
+
+    [JsonPropertyName("selectOnly")]
+    public bool? SelectOnly { get; set; }
 }
 
 /// <summary>

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Quibee.Database;
 using Quibee.Services;
+using Velopack;
 
 namespace Quibee;
 
@@ -22,6 +23,8 @@ class Program
             TestLessonContentService().Wait();
             return;
         }
+
+        VelopackApp.Build().Run();
 
         // Iniciar la aplicación normalmente
         BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
