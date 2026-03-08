@@ -21,21 +21,11 @@ public class QuibeeDbContextFactory : IDesignTimeDbContextFactory<QuibeeDbContex
             .AddJsonFile("appsettings.Development.json", optional: true)
             .Build();
 
-        var connectionString = configuration.GetConnectionString("QuibeeDb");
-
-        if (string.IsNullOrEmpty(connectionString))
-        {
-            throw new InvalidOperationException(
-                "No se encontró el connection string 'QuibeeDb' en appsettings.json");
-        }
+        var connectionString = SqliteConnectionHelper.GetConnectionString(configuration);
 
         // Configurar opciones del DbContext
         var optionsBuilder = new DbContextOptionsBuilder<QuibeeDbContext>();
-        optionsBuilder.UseMySql(
-            connectionString,
-            ServerVersion.AutoDetect(connectionString),
-            mySqlOptions => mySqlOptions.EnableRetryOnFailure()
-        );
+        optionsBuilder.UseSqlite(connectionString);
 
         return new QuibeeDbContext(optionsBuilder.Options);
     }

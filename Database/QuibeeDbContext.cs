@@ -40,19 +40,8 @@ public class QuibeeDbContext : DbContext
                 .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("QuibeeDatabase");
-            
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                throw new InvalidOperationException(
-                    "No se encontró la cadena de conexión 'QuibeeDatabase' en appsettings.json"
-                );
-            }
-
-            optionsBuilder.UseMySql(
-                connectionString,
-                new MySqlServerVersion(new Version(8, 0, 0))
-            );
+            var connectionString = SqliteConnectionHelper.GetConnectionString(configuration);
+            optionsBuilder.UseSqlite(connectionString);
         }
     }
 

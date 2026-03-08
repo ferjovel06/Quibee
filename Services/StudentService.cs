@@ -86,12 +86,22 @@ public class StudentService
     {
         try
         {
-            // Buscar estudiante por nombre completo y PIN
-            var student = await Task.Run(() => 
-                _context.Students.FirstOrDefault(s => 
-                    (s.FirstName + " " + s.LastName).ToLower() == fullName.ToLower() &&
-                    s.AccessCode == accessCode &&
-                    s.IsActive));
+            var normalizedInput = NormalizeFullName(fullName);
+
+            // Buscar por PIN primero y comparar en memoria para tolerar espacios/acentos.
+            var candidates = await Task.Run(() =>
+                _context.Students
+                    .Where(s => s.AccessCode == accessCode && s.IsActive)
+                    .ToList());
+
+            var student = candidates.FirstOrDefault(s =>
+            {
+                var normalizedFullName = NormalizeFullName($"{s.FirstName} {s.LastName}");
+                var normalizedUsername = NormalizeFullName(s.Username);
+
+                return normalizedFullName == normalizedInput
+                    || normalizedUsername == normalizedInput;
+            });
 
             if (student != null)
             {
@@ -225,5 +235,21 @@ public class StudentService
         }
 
         return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC);
+    }
+
+    private string NormalizeFullName(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        var trimmed = value.Trim();
+        var parts = trimmed
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries)
+            .Select(p => p.Trim());
+
+        var compact = string.Join(' ', parts).ToLowerInvariant();
+        return RemoveAccents(compact);
     }
 }

@@ -56,6 +56,11 @@ public sealed class AppUpdateService
         }
         catch (Exception ex)
         {
+            if (ex.Message.Contains("not installed", StringComparison.OrdinalIgnoreCase))
+            {
+                return;
+            }
+
             Console.WriteLine($"⚠️ Error al comprobar actualizaciones: {ex.Message}");
         }
     }

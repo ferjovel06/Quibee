@@ -7,6 +7,8 @@ out/
 appsettings.Development.json
 appsettings.*.json
 !appsettings.json
+.env
+.env.prod
 
 # User-specific files
 *.rsuser
@@ -216,6 +218,9 @@ csx/
 # Microsoft Azure Emulator
 ecf/
 rcf/
+
+# Local database and migration artifacts
+identifier.sqlite
 
 # Windows Store app package directories and files
 AppPackages/

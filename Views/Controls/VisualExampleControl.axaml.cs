@@ -19,6 +19,11 @@ public partial class VisualExampleControl : UserControl
     private readonly List<TextBox> _answerInputs = new();
     private const string DefaultNumberImagePattern = "avares://Quibee/Assets/Images/{0}.png";
     private bool _expectsTextAnswers;
+    private string? _groupKey;
+
+    private static readonly Dictionary<string, List<WeakReference<VisualExampleControl>>> GroupedControls = new();
+    private static readonly FontFamily EmojiFontFamily = FontFamily.Parse("Segoe UI Emoji, Segoe UI Symbol");
+    private static readonly FontFamily SymbolFontFamily = FontFamily.Parse("Segoe UI Symbol, Segoe UI Emoji");
 
     public static readonly StyledProperty<LessonContentData?> ContentDataProperty =
         AvaloniaProperty.Register<VisualExampleControl, LessonContentData?>(nameof(ContentData));
@@ -29,9 +34,20 @@ public partial class VisualExampleControl : UserControl
         set => SetValue(ContentDataProperty, value);
     }
 
+    public static readonly StyledProperty<LessonContent?> LessonContextProperty =
+        AvaloniaProperty.Register<VisualExampleControl, LessonContent?>(nameof(LessonContext));
+
+    public LessonContent? LessonContext
+    {
+        get => GetValue(LessonContextProperty);
+        set => SetValue(LessonContextProperty, value);
+    }
+
     public VisualExampleControl()
     {
         InitializeComponent();
+
+        DetachedFromVisualTree += (_, _) => UnregisterFromGroup();
 
         var checkButton = this.FindControl<Button>("CheckButton");
         if (checkButton != null)
@@ -47,6 +63,11 @@ public partial class VisualExampleControl : UserControl
         if (change.Property == ContentDataProperty && ContentData != null)
         {
             UpdateContent();
+        }
+
+        if (change.Property == LessonContextProperty)
+        {
+            RegisterOrUpdateGroupMembership();
         }
     }
 
@@ -110,6 +131,189 @@ public partial class VisualExampleControl : UserControl
         {
             validationContainer.IsVisible = true;
         }
+
+        RegisterOrUpdateGroupMembership();
+    }
+
+    private bool IsSingleCheckModeForLesson6Practiquemos()
+    {
+        return LessonContext != null
+            && LessonContext.IdLesson == 6
+            && string.Equals(LessonContext.SectionType, "practiquemos", StringComparison.OrdinalIgnoreCase)
+            && LessonContext.IdContent < 0;
+    }
+
+    private void RegisterOrUpdateGroupMembership()
+    {
+        if (!IsSingleCheckModeForLesson6Practiquemos())
+        {
+            UnregisterFromGroup();
+            return;
+        }
+
+        _groupKey = $"{LessonContext!.IdLesson}:{LessonContext.SectionType}";
+
+        if (!GroupedControls.TryGetValue(_groupKey, out var group))
+        {
+            group = new List<WeakReference<VisualExampleControl>>();
+            GroupedControls[_groupKey] = group;
+        }
+
+        var alreadyRegistered = group.Any(wr => wr.TryGetTarget(out var target) && ReferenceEquals(target, this));
+        if (!alreadyRegistered)
+        {
+            group.Add(new WeakReference<VisualExampleControl>(this));
+        }
+
+        CleanupDeadReferences(group);
+        RefreshGroupVisibility(_groupKey);
+    }
+
+    private void UnregisterFromGroup()
+    {
+        if (string.IsNullOrEmpty(_groupKey))
+        {
+            return;
+        }
+
+        if (GroupedControls.TryGetValue(_groupKey, out var group))
+        {
+            group.RemoveAll(wr => !wr.TryGetTarget(out var target) || ReferenceEquals(target, this));
+            if (group.Count == 0)
+            {
+                GroupedControls.Remove(_groupKey);
+            }
+            else
+            {
+                RefreshGroupVisibility(_groupKey);
+            }
+        }
+
+        _groupKey = null;
+    }
+
+    private static void CleanupDeadReferences(List<WeakReference<VisualExampleControl>> group)
+    {
+        group.RemoveAll(wr => !wr.TryGetTarget(out _));
+    }
+
+    private static List<VisualExampleControl> GetLiveGroupControls(string key)
+    {
+        if (!GroupedControls.TryGetValue(key, out var group))
+        {
+            return new List<VisualExampleControl>();
+        }
+
+        CleanupDeadReferences(group);
+
+        return group
+            .Select(wr => wr.TryGetTarget(out var control) ? control : null)
+            .Where(control => control != null)
+            .Cast<VisualExampleControl>()
+            .OrderBy(control => control.LessonContext?.OrderIndex ?? int.MaxValue)
+            .ToList();
+    }
+
+    private static void RefreshGroupVisibility(string key)
+    {
+        var controls = GetLiveGroupControls(key);
+        if (controls.Count == 0)
+        {
+            return;
+        }
+
+        var host = controls.Last();
+
+        foreach (var control in controls)
+        {
+            var validationContainer = control.FindControl<StackPanel>("ValidationContainer");
+            if (validationContainer == null)
+            {
+                continue;
+            }
+
+            validationContainer.IsVisible = ReferenceEquals(control, host);
+        }
+    }
+
+    private bool IsGroupHostControl()
+    {
+        if (string.IsNullOrEmpty(_groupKey))
+        {
+            return true;
+        }
+
+        var controls = GetLiveGroupControls(_groupKey);
+        return controls.Count == 0 || ReferenceEquals(controls.Last(), this);
+    }
+
+    private (bool isCorrect, int correctCount, int totalCount) EvaluateAnswers()
+    {
+        if (ContentData == null)
+        {
+            return (false, 0, 0);
+        }
+
+        var expectedTextSingle = ContentData.CorrectTextAnswer?.Trim();
+        var expectedTextMultiple = ContentData.CorrectTextAnswers?
+            .Select(value => value.Trim())
+            .Where(value => !string.IsNullOrEmpty(value))
+            .ToList();
+
+        var expectedMultiple = ContentData.CorrectAnswers;
+
+        if (expectedTextMultiple != null && expectedTextMultiple.Count > 0)
+        {
+            var totalCount = expectedTextMultiple.Count;
+            var correctCount = 0;
+
+            for (int i = 0; i < expectedTextMultiple.Count; i++)
+            {
+                var inputText = i < _answerInputs.Count ? _answerInputs[i].Text?.Trim() : null;
+                if (string.Equals(inputText, expectedTextMultiple[i], StringComparison.Ordinal))
+                {
+                    correctCount++;
+                }
+            }
+
+            return (correctCount == totalCount, correctCount, totalCount);
+        }
+
+        if (!string.IsNullOrEmpty(expectedTextSingle))
+        {
+            var firstAnswer = _answerInputs.FirstOrDefault()?.Text?.Trim();
+            var isCorrect = string.Equals(firstAnswer, expectedTextSingle, StringComparison.Ordinal);
+            return (isCorrect, isCorrect ? 1 : 0, 1);
+        }
+
+        if (expectedMultiple != null && expectedMultiple.Count > 0)
+        {
+            var totalCount = expectedMultiple.Count;
+            var correctCount = 0;
+
+            for (int i = 0; i < expectedMultiple.Count; i++)
+            {
+                var inputText = i < _answerInputs.Count ? _answerInputs[i].Text?.Trim() : null;
+                var valid = int.TryParse(inputText, out var enteredValue);
+
+                if (valid && enteredValue == expectedMultiple[i])
+                {
+                    correctCount++;
+                }
+            }
+
+            return (correctCount == totalCount, correctCount, totalCount);
+        }
+
+        if (ContentData.CorrectAnswer.HasValue)
+        {
+            var firstAnswer = _answerInputs.FirstOrDefault()?.Text?.Trim();
+            var isValidNumber = int.TryParse(firstAnswer, out var enteredValue);
+            var isCorrect = isValidNumber && enteredValue == ContentData.CorrectAnswer.Value;
+            return (isCorrect, isCorrect ? 1 : 0, 1);
+        }
+
+        return (false, 0, 0);
     }
 
     private void RenderColumnsBoard(StackPanel container)
@@ -264,6 +468,7 @@ public partial class VisualExampleControl : UserControl
             {
                 Text = emoji,
                 FontSize = fontSize,
+                FontFamily = EmojiFontFamily,
                 HorizontalAlignment = HorizontalAlignment.Center,
                 TextAlignment = TextAlignment.Center,
                 VerticalAlignment = VerticalAlignment.Center
@@ -362,6 +567,7 @@ public partial class VisualExampleControl : UserControl
                 Text = obj.Symbol,
                 FontSize = obj.FontSize ?? 36,
                 FontWeight = FontWeight.Bold,
+                FontFamily = SymbolFontFamily,
                 Foreground = !string.IsNullOrEmpty(obj.Color)
                     ? new SolidColorBrush(Color.Parse(obj.Color))
                     : Brushes.White,
@@ -589,6 +795,7 @@ public partial class VisualExampleControl : UserControl
         {
             Text = emoji,
             FontSize = fontSize ?? 48,
+            FontFamily = EmojiFontFamily,
             VerticalAlignment = VerticalAlignment.Center
         };
     }
@@ -649,68 +856,52 @@ public partial class VisualExampleControl : UserControl
             return;
         }
 
-        var expectedTextSingle = ContentData.CorrectTextAnswer?.Trim();
-        var expectedTextMultiple = ContentData.CorrectTextAnswers?
-            .Select(value => value.Trim())
-            .Where(value => !string.IsNullOrEmpty(value))
-            .ToList();
-
-        var expectedMultiple = ContentData.CorrectAnswers;
-
-        bool isCorrect;
-        int correctCount;
-        int totalCount;
-
-        if (expectedTextMultiple != null && expectedTextMultiple.Count > 0)
+        if (IsSingleCheckModeForLesson6Practiquemos())
         {
-            totalCount = expectedTextMultiple.Count;
-            correctCount = 0;
-
-            for (int i = 0; i < expectedTextMultiple.Count; i++)
+            if (!IsGroupHostControl())
             {
-                var inputText = i < _answerInputs.Count ? _answerInputs[i].Text?.Trim() : null;
-                if (string.Equals(inputText, expectedTextMultiple[i], StringComparison.Ordinal))
-                {
-                    correctCount++;
-                }
+                return;
             }
 
-            isCorrect = correctCount == totalCount;
-        }
-        else if (!string.IsNullOrEmpty(expectedTextSingle))
-        {
-            totalCount = 1;
-            var firstAnswer = _answerInputs.FirstOrDefault()?.Text?.Trim();
-            isCorrect = string.Equals(firstAnswer, expectedTextSingle, StringComparison.Ordinal);
-            correctCount = isCorrect ? 1 : 0;
-        }
-        else if (expectedMultiple != null && expectedMultiple.Count > 0)
-        {
-            totalCount = expectedMultiple.Count;
-            correctCount = 0;
+            var controls = string.IsNullOrEmpty(_groupKey)
+                ? new List<VisualExampleControl> { this }
+                : GetLiveGroupControls(_groupKey!);
 
-            for (int i = 0; i < expectedMultiple.Count; i++)
+            var groupTotalCount = 0;
+            var groupCorrectCount = 0;
+
+            foreach (var control in controls)
             {
-                var inputText = i < _answerInputs.Count ? _answerInputs[i].Text?.Trim() : null;
-                var valid = int.TryParse(inputText, out var enteredValue);
-
-                if (valid && enteredValue == expectedMultiple[i])
-                {
-                    correctCount++;
-                }
+                var result = control.EvaluateAnswers();
+                groupTotalCount += result.totalCount;
+                groupCorrectCount += result.correctCount;
             }
 
-            isCorrect = correctCount == totalCount;
+            var allCorrect = groupTotalCount > 0 && groupCorrectCount == groupTotalCount;
+            validationMessage.Text = allCorrect
+                ? "¡Excelente! Todas las respuestas son correctas"
+                : $"{groupCorrectCount}/{groupTotalCount} correctas. Intenta de nuevo";
+            validationMessage.Foreground = allCorrect
+                ? new SolidColorBrush(Color.Parse("#65E4A3"))
+                : new SolidColorBrush(Color.Parse("#FF8A8A"));
+
+            ExerciseMessenger.NotifyExerciseCompleted(new ExerciseCompletedEventArgs
+            {
+                CorrectCount = groupCorrectCount,
+                TotalCount = groupTotalCount,
+                PointsEarned = groupCorrectCount * 10,
+                SectionType = "resolvamos"
+            });
+
+            return;
         }
-        else if (ContentData.CorrectAnswer.HasValue)
-        {
-            totalCount = 1;
-            var firstAnswer = _answerInputs.FirstOrDefault()?.Text?.Trim();
-            var isValidNumber = int.TryParse(firstAnswer, out var enteredValue);
-            isCorrect = isValidNumber && enteredValue == ContentData.CorrectAnswer.Value;
-            correctCount = isCorrect ? 1 : 0;
-        }
-        else
+
+        var resultSingle = EvaluateAnswers();
+        var isCorrect = resultSingle.isCorrect;
+        var correctCount = resultSingle.correctCount;
+        var totalCount = resultSingle.totalCount;
+
+        if (totalCount == 0)
         {
             return;
         }

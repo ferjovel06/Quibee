@@ -2,7 +2,6 @@
 using System;
 using Microsoft.Extensions.Configuration;
 using Microsoft.EntityFrameworkCore;
-using Pomelo.EntityFrameworkCore.MySql.Infrastructure;
 using Quibee.Database;
 using Quibee.Services;
 using Velopack;
@@ -124,17 +123,9 @@ class Program
                 .AddJsonFile("appsettings.Development.json", optional: true)
                 .Build();
 
-            var connectionString = configuration.GetConnectionString("QuibeeDb");
-            
-            if (string.IsNullOrEmpty(connectionString))
-            {
-                Console.WriteLine("❌ No se encontró el connection string");
-                return;
-            }
-
             // Crear DbContext
             var optionsBuilder = new DbContextOptionsBuilder<QuibeeDbContext>();
-            optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+            optionsBuilder.UseSqlite(SqliteConnectionHelper.GetConnectionString(configuration));
             
             using var context = new QuibeeDbContext(optionsBuilder.Options);
             var testService = new DatabaseTestService(context);

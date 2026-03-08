@@ -61,10 +61,8 @@ namespace Quibee.ViewModels
                     .AddJsonFile("appsettings.Development.json", optional: true)
                     .Build();
 
-                var connectionString = configuration.GetConnectionString("QuibeeDb");
-                
                 var optionsBuilder = new DbContextOptionsBuilder<QuibeeDbContext>();
-                optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                optionsBuilder.UseSqlite(SqliteConnectionHelper.GetConnectionString(configuration));
                 
                 using var context = new QuibeeDbContext(optionsBuilder.Options);
                 var studentService = new StudentService(context);

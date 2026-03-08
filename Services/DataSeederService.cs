@@ -24,6 +24,9 @@ public class DataSeederService
     /// </summary>
     public async Task SeedLevelsAndTopicsAsync()
     {
+        // Offline-first: crear base/tablas locales en el primer arranque.
+        await _context.Database.EnsureCreatedAsync();
+
         // Verificar si ya hay datos
         if (await _context.Levels.AnyAsync())
         {
