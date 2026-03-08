@@ -20,8 +20,8 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            // Inicializar base de datos de forma asíncrona
-            _ = InitializeDatabaseAsync();
+            // Inicializar base antes de mostrar UI para evitar pantallas vacías en primera ejecución.
+            InitializeDatabaseAsync().GetAwaiter().GetResult();
 
             desktop.MainWindow = new MainWindow
             {

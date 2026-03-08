@@ -1,7 +1,10 @@
 using System;
+using System.IO;
+using System.Data.Common;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 using Quibee.Database;
 using Quibee.Models;
 
@@ -27,10 +30,26 @@ public class DataSeederService
         // Offline-first: crear base/tablas locales en el primer arranque.
         await _context.Database.EnsureCreatedAsync();
 
+        var hasCurriculum = await _context.Lessons.AnyAsync()
+            && await _context.LessonContents.AnyAsync()
+            && await _context.Exercises.AnyAsync();
+
+        if (hasCurriculum)
+        {
+            Console.WriteLine("✓ La base de datos ya contiene currículo. No se inicializará.");
+            return;
+        }
+
+        if (await TrySeedCurriculumFromTemplateAsync())
+        {
+            Console.WriteLine("✓ Currículo cargado desde plantilla SQLite embebida.");
+            return;
+        }
+
         // Verificar si ya hay datos
         if (await _context.Levels.AnyAsync())
         {
-            Console.WriteLine("✓ La base de datos ya contiene niveles. No se inicializará.");
+            Console.WriteLine("⚠️ La base contiene niveles pero no lecciones. No se encontró plantilla para completar currículo.");
             return;
         }
 
@@ -230,5 +249,107 @@ public class DataSeederService
 
         Console.WriteLine($"✓ Creados {levels.Length} niveles");
         Console.WriteLine($"✓ Creados {grade1Topics.Length + grade2Topics.Length + grade3Topics.Length} temas");
+    }
+
+    private async Task<bool> TrySeedCurriculumFromTemplateAsync()
+    {
+        var candidatePaths = new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "Database", "Seeds", "curriculum.seed.db"),
+            Path.Combine(AppContext.BaseDirectory, "curriculum.seed.db"),
+            Path.Combine(Directory.GetCurrentDirectory(), "Database", "Seeds", "curriculum.seed.db")
+        };
+
+        var seedPath = candidatePaths.FirstOrDefault(File.Exists);
+        if (string.IsNullOrWhiteSpace(seedPath))
+        {
+            return false;
+        }
+
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+
+        try
+        {
+            await _context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys=OFF;");
+
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM EXERCISE;");
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM LESSON_CONTENT;");
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM LESSON;");
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM TOPIC;");
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM LEVEL;");
+            await _context.Database.ExecuteSqlRawAsync("DELETE FROM ACHIEVEMENT;");
+
+            await ExecuteSqlWithParameterAsync("ATTACH DATABASE @seedPath AS seed;", "@seedPath", seedPath);
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+INSERT INTO LEVEL (id_level, level_number, level_name, description, icon, is_active, created_at, updated_at)
+SELECT id_level, level_number, level_name, description, icon, is_active, created_at, updated_at
+FROM seed.LEVEL;");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+INSERT INTO TOPIC (id_topic, id_level, topic_name, description, icon, order_index, icon_width, icon_height, is_active, created_at, updated_at)
+SELECT id_topic, id_level, topic_name, description, icon, order_index, icon_width, icon_height, is_active, created_at, updated_at
+FROM seed.TOPIC;");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+INSERT INTO LESSON (id_lesson, id_topic, title, content, multimedia_url, multimedia_type, order_index, estimated_duration_minutes, is_active, created_at, updated_at)
+SELECT id_lesson, id_topic, title, content, multimedia_url, multimedia_type, order_index, estimated_duration_minutes, is_active, created_at, updated_at
+FROM seed.LESSON;");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+INSERT INTO LESSON_CONTENT (id_content, id_lesson, content_type, content_data, order_index, section_type, is_active, created_at, updated_at)
+SELECT id_content, id_lesson, content_type, content_data, order_index, section_type, is_active, created_at, updated_at
+FROM seed.LESSON_CONTENT;");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+INSERT INTO EXERCISE (id_exercise, id_lesson, section_type, instructions, exercise_type, question_text, config, solution, difficulty, points, order_index, is_active, created_at, updated_at)
+SELECT id_exercise, id_lesson, section_type, instructions, exercise_type, question_text, config, solution, difficulty, points, order_index, is_active, created_at, updated_at
+FROM seed.EXERCISE;");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+INSERT INTO ACHIEVEMENT (id_achievement, achievement_name, description, icon, criteria, points_reward, created_at)
+SELECT id_achievement, achievement_name, description, icon, criteria, points_reward, created_at
+FROM seed.ACHIEVEMENT;");
+
+            await _context.Database.ExecuteSqlRawAsync("DETACH DATABASE seed;");
+            await _context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys=ON;");
+
+            await transaction.CommitAsync();
+
+            return await _context.Lessons.AnyAsync()
+                && await _context.LessonContents.AnyAsync()
+                && await _context.Exercises.AnyAsync();
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            return false;
+        }
+    }
+
+    private async Task ExecuteSqlWithParameterAsync(string sql, string parameterName, string value)
+    {
+        var connection = _context.Database.GetDbConnection();
+
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            await connection.OpenAsync();
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+
+        var currentTransaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+        if (currentTransaction is not null)
+        {
+            command.Transaction = currentTransaction;
+        }
+
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = parameterName;
+        parameter.Value = value;
+        command.Parameters.Add(parameter);
+
+        await command.ExecuteNonQueryAsync();
     }
 }
