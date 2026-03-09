@@ -16,6 +16,10 @@ namespace Quibee.Services;
 public class DataSeederService
 {
     private readonly QuibeeDbContext _context;
+    private static readonly string SeedLogPath = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+        "Quibee",
+        "seed-diagnostic.log");
 
     public DataSeederService(QuibeeDbContext context)
     {
@@ -27,12 +31,16 @@ public class DataSeederService
     /// </summary>
     public async Task SeedLevelsAndTopicsAsync()
     {
+        Log("SeedLevelsAndTopicsAsync start");
+
         // Offline-first: crear base/tablas locales en el primer arranque.
         await _context.Database.EnsureCreatedAsync();
+        Log("EnsureCreatedAsync done");
 
         var hasCurriculum = await _context.Lessons.AnyAsync()
             && await _context.LessonContents.AnyAsync()
             && await _context.Exercises.AnyAsync();
+        Log($"hasCurriculum={hasCurriculum}");
 
         if (hasCurriculum)
         {
@@ -40,9 +48,19 @@ public class DataSeederService
             return;
         }
 
+        var hasTemplate = HasCurriculumTemplate();
+
         if (await TrySeedCurriculumFromTemplateAsync())
         {
             Console.WriteLine("✓ Currículo cargado desde plantilla SQLite embebida.");
+            Log("Seed from template succeeded");
+            return;
+        }
+
+        if (hasTemplate)
+        {
+            Console.WriteLine("❌ Se encontró plantilla de currículo, pero la importación falló. Se cancela seed básico para evitar datos incompletos.");
+            Log("Template exists but import failed; aborting basic seed fallback");
             return;
         }
 
@@ -249,22 +267,22 @@ public class DataSeederService
 
         Console.WriteLine($"✓ Creados {levels.Length} niveles");
         Console.WriteLine($"✓ Creados {grade1Topics.Length + grade2Topics.Length + grade3Topics.Length} temas");
+        Log("Basic seed finished");
     }
 
     private async Task<bool> TrySeedCurriculumFromTemplateAsync()
     {
-        var candidatePaths = new[]
-        {
-            Path.Combine(AppContext.BaseDirectory, "Database", "Seeds", "curriculum.seed.db"),
-            Path.Combine(AppContext.BaseDirectory, "curriculum.seed.db"),
-            Path.Combine(Directory.GetCurrentDirectory(), "Database", "Seeds", "curriculum.seed.db")
-        };
+        var candidatePaths = GetSeedCandidatePaths();
 
         var seedPath = candidatePaths.FirstOrDefault(File.Exists);
         if (string.IsNullOrWhiteSpace(seedPath))
         {
+            Console.WriteLine("ℹ️ No se encontró archivo curriculum.seed.db en rutas esperadas.");
+            Log("Template seed not found in candidate paths");
             return false;
         }
+
+        Log($"TrySeedCurriculumFromTemplateAsync using seedPath={seedPath}");
 
         await using var transaction = await _context.Database.BeginTransactionAsync();
 
@@ -272,14 +290,31 @@ public class DataSeederService
         {
             await _context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys=OFF;");
 
+            await AttachSeedDatabaseAsync(seedPath);
+            Log("Seed DB attached");
+
+            // Validar la plantilla antes de tocar la base local.
+            var seedLevels = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM seed.LEVEL;");
+            var seedTopics = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM seed.TOPIC;");
+            var seedLessons = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM seed.LESSON;");
+            var seedContents = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM seed.LESSON_CONTENT;");
+            var seedExercises = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM seed.EXERCISE;");
+
+            if (seedLevels == 0 || seedTopics == 0 || seedLessons == 0 || seedContents == 0 || seedExercises == 0)
+            {
+                Console.WriteLine($"❌ Plantilla inválida. Conteos seed -> LEVEL:{seedLevels}, TOPIC:{seedTopics}, LESSON:{seedLessons}, LESSON_CONTENT:{seedContents}, EXERCISE:{seedExercises}");
+                Log($"Invalid seed counts LEVEL={seedLevels} TOPIC={seedTopics} LESSON={seedLessons} LESSON_CONTENT={seedContents} EXERCISE={seedExercises}");
+                await _context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys=ON;");
+                await transaction.RollbackAsync();
+                return false;
+            }
+
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM EXERCISE;");
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM LESSON_CONTENT;");
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM LESSON;");
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM TOPIC;");
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM LEVEL;");
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM ACHIEVEMENT;");
-
-            await ExecuteSqlWithParameterAsync("ATTACH DATABASE @seedPath AS seed;", "@seedPath", seedPath);
 
             await _context.Database.ExecuteSqlRawAsync(@"
 INSERT INTO LEVEL (id_level, level_number, level_name, description, icon, is_active, created_at, updated_at)
@@ -311,7 +346,28 @@ INSERT INTO ACHIEVEMENT (id_achievement, achievement_name, description, icon, cr
 SELECT id_achievement, achievement_name, description, icon, criteria, points_reward, created_at
 FROM seed.ACHIEVEMENT;");
 
-            await _context.Database.ExecuteSqlRawAsync("DETACH DATABASE seed;");
+            var importedLessons = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM LESSON;");
+            var importedContents = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM LESSON_CONTENT;");
+            var importedExercises = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM EXERCISE;");
+
+            if (importedLessons == 0 || importedContents == 0 || importedExercises == 0)
+            {
+                throw new InvalidOperationException("La importación de currículo quedó vacía después del copiado.");
+            }
+
+            Log($"Import completed LESSON={importedLessons} LESSON_CONTENT={importedContents} EXERCISE={importedExercises}");
+
+            try
+            {
+                // En algunos entornos SQLite mantiene lock temporal sobre la BD adjunta.
+                // Si falla el detach, no debe revertir una importación ya correcta.
+                await _context.Database.ExecuteSqlRawAsync("DETACH DATABASE seed;");
+            }
+            catch (Exception detachEx)
+            {
+                Log($"DETACH warning (ignored): {detachEx.Message}");
+            }
+
             await _context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys=ON;");
 
             await transaction.CommitAsync();
@@ -320,14 +376,84 @@ FROM seed.ACHIEVEMENT;");
                 && await _context.LessonContents.AnyAsync()
                 && await _context.Exercises.AnyAsync();
         }
-        catch
+        catch (Exception ex)
         {
+            Console.WriteLine($"❌ Error importando currículo desde plantilla: {ex.Message}");
+            Console.WriteLine($"   Ruta seed usada: {seedPath}");
+            Console.WriteLine($"   Rutas candidatas: {string.Join(" | ", candidatePaths)}");
+            Log($"Import exception: {ex}");
+
+            try
+            {
+                await _context.Database.ExecuteSqlRawAsync("PRAGMA foreign_keys=ON;");
+            }
+            catch
+            {
+                // Ignorar errores secundarios durante cleanup.
+            }
+
             await transaction.RollbackAsync();
             return false;
         }
     }
 
-    private async Task ExecuteSqlWithParameterAsync(string sql, string parameterName, string value)
+    private static void Log(string message)
+    {
+        try
+        {
+            var dir = Path.GetDirectoryName(SeedLogPath);
+            if (!string.IsNullOrWhiteSpace(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+
+            File.AppendAllText(SeedLogPath, $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}");
+        }
+        catch
+        {
+            // No bloquear flujo principal por errores de logging.
+        }
+    }
+
+    private bool HasCurriculumTemplate()
+    {
+        return GetSeedCandidatePaths().Any(File.Exists);
+    }
+
+    private string[] GetSeedCandidatePaths()
+    {
+        return new[]
+        {
+            Path.Combine(AppContext.BaseDirectory, "Database", "Seeds", "curriculum.seed.db"),
+            Path.Combine(AppContext.BaseDirectory, "curriculum.seed.db"),
+            Path.Combine(Directory.GetCurrentDirectory(), "Database", "Seeds", "curriculum.seed.db")
+        };
+    }
+
+    private async Task AttachSeedDatabaseAsync(string seedPath)
+    {
+        var connection = _context.Database.GetDbConnection();
+
+        if (connection.State != System.Data.ConnectionState.Open)
+        {
+            await connection.OpenAsync();
+        }
+
+        var escapedSeedPath = seedPath.Replace("'", "''");
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = $"ATTACH DATABASE '{escapedSeedPath}' AS seed;";
+
+        var currentTransaction = _context.Database.CurrentTransaction?.GetDbTransaction();
+        if (currentTransaction is not null)
+        {
+            command.Transaction = currentTransaction;
+        }
+
+        await command.ExecuteNonQueryAsync();
+    }
+
+    private async Task<long> ExecuteScalarLongAsync(string sql)
     {
         var connection = _context.Database.GetDbConnection();
 
@@ -345,11 +471,7 @@ FROM seed.ACHIEVEMENT;");
             command.Transaction = currentTransaction;
         }
 
-        var parameter = command.CreateParameter();
-        parameter.ParameterName = parameterName;
-        parameter.Value = value;
-        command.Parameters.Add(parameter);
-
-        await command.ExecuteNonQueryAsync();
+        var result = await command.ExecuteScalarAsync();
+        return Convert.ToInt64(result);
     }
 }

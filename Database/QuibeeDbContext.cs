@@ -33,10 +33,13 @@ public class QuibeeDbContext : DbContext
     {
         if (!optionsBuilder.IsConfigured)
         {
+            // Leer configuración desde la carpeta del ejecutable (estable en instalación).
+            var basePath = AppContext.BaseDirectory;
+
             // Leer configuración desde appsettings.json
             var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                .SetBasePath(basePath)
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                 .AddJsonFile("appsettings.Development.json", optional: true, reloadOnChange: true)
                 .Build();
 

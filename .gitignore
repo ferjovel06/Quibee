@@ -238,6 +238,10 @@ _pkginfo.txt
 !?*.[Cc]ache/
 
 # Others
+
+# Local Velopack release artifacts (generated for testing/publishing)
+releases_*/
+releases_local_*/
 ClientBin/
 ~$*
 *~

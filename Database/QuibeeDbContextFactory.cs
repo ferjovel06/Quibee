@@ -14,10 +14,13 @@ public class QuibeeDbContextFactory : IDesignTimeDbContextFactory<QuibeeDbContex
 {
     public QuibeeDbContext CreateDbContext(string[] args)
     {
+        // Usar la carpeta del ejecutable para no depender del directorio de trabajo.
+        var basePath = AppContext.BaseDirectory;
+
         // Cargar configuración desde appsettings
         var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false)
+            .SetBasePath(basePath)
+            .AddJsonFile("appsettings.json", optional: true)
             .AddJsonFile("appsettings.Development.json", optional: true)
             .Build();
 

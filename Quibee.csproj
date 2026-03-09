@@ -42,6 +42,7 @@
     </None>
     <None Update="Database\Seeds\curriculum.seed.db">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>Always</CopyToPublishDirectory>
     </None>
   </ItemGroup>
 </Project>
