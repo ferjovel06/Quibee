@@ -59,6 +59,7 @@
                     <!-- Contenido Principal (abajo) -->
                     <ScrollViewer Grid.Row="1"
                                   VerticalScrollBarVisibility="Auto"
+                                  HorizontalScrollBarVisibility="Auto"
                                   Background="#311B42">
                         <ItemsControl ItemsSource="{Binding CurrentSectionContents}"
                                       Margin="40">

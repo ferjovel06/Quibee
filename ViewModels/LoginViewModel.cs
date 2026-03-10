@@ -11,6 +11,8 @@ namespace Quibee.ViewModels
     {
         private string _nombreCompleto = string.Empty;
         private string _claveAcceso = string.Empty;
+        private string _mensajeErrorLogin = string.Empty;
+        private bool _mostrarErrorLogin;
         private readonly MainWindowViewModel? _mainWindowViewModel;
 
         public LoginViewModel(MainWindowViewModel? mainWindowViewModel = null)
@@ -33,6 +35,7 @@ namespace Quibee.ViewModels
                 {
                     _nombreCompleto = value;
                     OnPropertyChanged();
+                    ClearLoginError();
                     OnPropertyChanged(nameof(PuedeIngresar));
                     ((RelayCommand)IngresarCommand).RaiseCanExecuteChanged();
                 }
@@ -51,8 +54,35 @@ namespace Quibee.ViewModels
                 {
                     _claveAcceso = value;
                     OnPropertyChanged();
+                    ClearLoginError();
                     OnPropertyChanged(nameof(PuedeIngresar));
                     ((RelayCommand)IngresarCommand).RaiseCanExecuteChanged();
+                }
+            }
+        }
+
+        public string MensajeErrorLogin
+        {
+            get => _mensajeErrorLogin;
+            private set
+            {
+                if (_mensajeErrorLogin != value)
+                {
+                    _mensajeErrorLogin = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        public bool MostrarErrorLogin
+        {
+            get => _mostrarErrorLogin;
+            private set
+            {
+                if (_mostrarErrorLogin != value)
+                {
+                    _mostrarErrorLogin = value;
+                    OnPropertyChanged();
                 }
             }
         }
@@ -98,6 +128,7 @@ namespace Quibee.ViewModels
                 if (student != null)
                 {
                     Console.WriteLine($"✅ Login exitoso! Bienvenido {student.FirstName}");
+                    ClearLoginError();
                     
                     // ✅ Navegar al mapa de lecciones
                     _mainWindowViewModel?.NavigateToLessonsMap(student.IdStudent, student.LevelNumber);
@@ -105,12 +136,13 @@ namespace Quibee.ViewModels
                 else
                 {
                     Console.WriteLine("❌ Credenciales incorrectas");
-                    // TODO: Mostrar mensaje de error al usuario
+                    SetLoginError("Nombre o clave incorrectos.");
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error en login: {ex.Message}");
+                SetLoginError("Ocurrió un error al iniciar sesión.");
             }
         }
 
@@ -133,6 +165,18 @@ namespace Quibee.ViewModels
             // Por ahora solo validamos formato
             return ClaveAcceso.Length == 4 && 
                    int.TryParse(ClaveAcceso, out _);
+        }
+
+        private void SetLoginError(string message)
+        {
+            MensajeErrorLogin = message;
+            MostrarErrorLogin = true;
+        }
+
+        private void ClearLoginError()
+        {
+            MensajeErrorLogin = string.Empty;
+            MostrarErrorLogin = false;
         }
     }
 }

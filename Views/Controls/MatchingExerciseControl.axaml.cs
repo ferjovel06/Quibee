@@ -15,6 +15,8 @@ namespace Quibee.Views.Controls;
 
 public partial class MatchingExerciseControl : UserControl
 {
+    private string? _groupKey;
+
     /// <summary>
     /// Casillas donde se sueltan los números. Clave = índice de fila.
     /// </summary>
@@ -58,6 +60,72 @@ public partial class MatchingExerciseControl : UserControl
     private bool IsOrderTokensMode() =>
         string.Equals(ContentData?.Layout, "order_tokens", StringComparison.OrdinalIgnoreCase);
 
+    private bool IsSingleCheckModeForExerciseSection()
+    {
+        var sectionType = LessonContext?.SectionType;
+
+        if (string.IsNullOrWhiteSpace(sectionType))
+        {
+            return false;
+        }
+
+        return sectionType.Equals("practiquemos", StringComparison.OrdinalIgnoreCase)
+            || sectionType.Equals("ejercitemos", StringComparison.OrdinalIgnoreCase)
+            || sectionType.Equals("resolvamos", StringComparison.OrdinalIgnoreCase)
+            || sectionType.Equals("desafio", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private void RegisterOrUpdateGroupMembership()
+    {
+        if (!IsSingleCheckModeForExerciseSection())
+        {
+            UnregisterFromGroup();
+            return;
+        }
+
+        _groupKey = $"{LessonContext!.IdLesson}:{LessonContext.SectionType}";
+
+        SectionCheckCoordinator.Register(
+            _groupKey,
+            this,
+            LessonContext?.OrderIndex ?? int.MaxValue,
+            () =>
+            {
+                var result = EvaluateExerciseState();
+                return new SectionCheckResult(result.ready, result.correctCount, result.totalCount);
+            },
+            isHost =>
+            {
+                var validationContainer = this.FindControl<StackPanel>("ValidationContainer");
+                if (validationContainer != null)
+                {
+                    validationContainer.IsVisible = isHost;
+                }
+            });
+    }
+
+    private void UnregisterFromGroup()
+    {
+        if (string.IsNullOrEmpty(_groupKey))
+        {
+            return;
+        }
+
+        SectionCheckCoordinator.Unregister(_groupKey, this);
+
+        _groupKey = null;
+    }
+
+    private bool IsGroupHostControl()
+    {
+        if (string.IsNullOrEmpty(_groupKey))
+        {
+            return true;
+        }
+
+        return SectionCheckCoordinator.IsHost(_groupKey, this);
+    }
+
     public static readonly StyledProperty<LessonContentData?> ContentDataProperty =
         AvaloniaProperty.Register<MatchingExerciseControl, LessonContentData?>(nameof(ContentData));
 
@@ -67,9 +135,20 @@ public partial class MatchingExerciseControl : UserControl
         set => SetValue(ContentDataProperty, value);
     }
 
+    public static readonly StyledProperty<LessonContent?> LessonContextProperty =
+        AvaloniaProperty.Register<MatchingExerciseControl, LessonContent?>(nameof(LessonContext));
+
+    public LessonContent? LessonContext
+    {
+        get => GetValue(LessonContextProperty);
+        set => SetValue(LessonContextProperty, value);
+    }
+
     public MatchingExerciseControl()
     {
         InitializeComponent();
+
+        DetachedFromVisualTree += (_, _) => UnregisterFromGroup();
 
         var checkButton = this.FindControl<Button>("CheckButton");
         if (checkButton != null)
@@ -85,6 +164,11 @@ public partial class MatchingExerciseControl : UserControl
         if (change.Property == ContentDataProperty && ContentData != null)
         {
             BuildExercise();
+        }
+
+        if (change.Property == LessonContextProperty)
+        {
+            RegisterOrUpdateGroupMembership();
         }
     }
 
@@ -293,6 +377,8 @@ public partial class MatchingExerciseControl : UserControl
         {
             validationContainer.IsVisible = true;
         }
+
+        RegisterOrUpdateGroupMembership();
     }
 
     private void BuildSequenceGridExercise(
@@ -1560,12 +1646,13 @@ public partial class MatchingExerciseControl : UserControl
         }
 
         if (!e.Data.Contains("Number")) return;
+        if (!_placedValues.ContainsKey(rowIndex)) return;
         var number = (int)e.Data.Get("Number")!;
 
         // Si ya hay un número en esta casilla, devolver el anterior
-        if (_placedValues[rowIndex].HasValue)
+        if (_placedValues.TryGetValue(rowIndex, out var existingValue) && existingValue.HasValue)
         {
-            ReturnNumberToPool(_placedValues[rowIndex]!.Value);
+            ReturnNumberToPool(existingValue.Value);
         }
 
         // Colocar el número
@@ -1618,9 +1705,9 @@ public partial class MatchingExerciseControl : UserControl
     /// </summary>
     private void OnDropTargetTapped(int rowIndex)
     {
-        if (_placedSymbols.ContainsKey(rowIndex) && !string.IsNullOrEmpty(_placedSymbols[rowIndex]))
+        if (_placedSymbols.TryGetValue(rowIndex, out var placedSymbol) && !string.IsNullOrEmpty(placedSymbol))
         {
-            var symbolValue = _placedSymbols[rowIndex]!;
+            var symbolValue = placedSymbol!;
             _placedSymbols[rowIndex] = null;
 
             if (_dropTargets.TryGetValue(rowIndex, out var symbolDrop))
@@ -1634,9 +1721,9 @@ public partial class MatchingExerciseControl : UserControl
             return;
         }
 
-        if (!_placedValues[rowIndex].HasValue) return;
+        if (!_placedValues.TryGetValue(rowIndex, out var placedNumber) || !placedNumber.HasValue) return;
 
-        var value = _placedValues[rowIndex]!.Value;
+        var value = placedNumber.Value;
         _placedValues[rowIndex] = null;
 
         // Restaurar visual de la casilla con "?"
@@ -1685,14 +1772,90 @@ public partial class MatchingExerciseControl : UserControl
         var validationMessage = this.FindControl<TextBlock>("ValidationMessage");
         if (validationMessage == null) return;
 
-        if (_correctSymbolAnswers.Count > 0)
+        var sectionType = LessonContext?.SectionType ?? "desafio";
+
+        if (IsSingleCheckModeForExerciseSection())
         {
-            bool allFilledSymbols = _placedSymbols.All(kv => !string.IsNullOrEmpty(kv.Value));
-            if (!allFilledSymbols)
+            if (!IsGroupHostControl())
             {
-                validationMessage.Text = "Coloca todos los operadores";
+                return;
+            }
+
+            if (string.IsNullOrEmpty(_groupKey))
+            {
+                return;
+            }
+
+            var group = SectionCheckCoordinator.EvaluateGroup(_groupKey);
+            var groupTotal = group.TotalCount;
+            var groupCorrect = group.CorrectCount;
+            var allReady = group.AllReady;
+
+            if (!allReady)
+            {
+                validationMessage.Text = "Completa todos los ejercicios antes de comprobar";
                 validationMessage.Foreground = new SolidColorBrush(Color.Parse("#FFD166"));
                 return;
+            }
+
+            var allCorrect = groupTotal > 0 && groupCorrect == groupTotal;
+            validationMessage.Text = allCorrect
+                ? "¡Excelente! Todas las respuestas son correctas 🎉"
+                : $"{groupCorrect}/{groupTotal} correctas. ¡Intenta de nuevo!";
+            validationMessage.Foreground = allCorrect
+                ? new SolidColorBrush(Color.Parse("#65E4A3"))
+                : new SolidColorBrush(Color.Parse("#FF8A8A"));
+
+            ExerciseMessenger.NotifyExerciseCompleted(new ExerciseCompletedEventArgs
+            {
+                CorrectCount = groupCorrect,
+                TotalCount = groupTotal,
+                PointsEarned = groupCorrect * 10,
+                SectionType = sectionType,
+                ContentId = LessonContext?.IdContent ?? 0,
+                IsSectionAggregate = true
+            });
+
+            return;
+        }
+
+        var singleResult = EvaluateExerciseState();
+        if (!singleResult.ready)
+        {
+            validationMessage.Text = _correctSymbolAnswers.Count > 0
+                ? "Coloca todos los operadores"
+                : "Coloca todos los números";
+            validationMessage.Foreground = new SolidColorBrush(Color.Parse("#FFD166"));
+            return;
+        }
+
+        var isCorrect = singleResult.totalCount > 0 && singleResult.correctCount == singleResult.totalCount;
+        validationMessage.Text = isCorrect
+            ? "¡Excelente! Todas las respuestas son correctas 🎉"
+            : $"{singleResult.correctCount}/{singleResult.totalCount} correctas. ¡Intenta de nuevo!";
+        validationMessage.Foreground = isCorrect
+            ? new SolidColorBrush(Color.Parse("#65E4A3"))
+            : new SolidColorBrush(Color.Parse("#FF8A8A"));
+
+        ExerciseMessenger.NotifyExerciseCompleted(new ExerciseCompletedEventArgs
+        {
+            CorrectCount = singleResult.correctCount,
+            TotalCount = singleResult.totalCount,
+            PointsEarned = singleResult.correctCount * 10,
+            SectionType = sectionType,
+            ContentId = LessonContext?.IdContent ?? 0,
+            IsSectionAggregate = false
+        });
+    }
+
+    private (bool ready, int correctCount, int totalCount) EvaluateExerciseState()
+    {
+        if (_correctSymbolAnswers.Count > 0)
+        {
+            var allFilledSymbols = _placedSymbols.All(kv => !string.IsNullOrEmpty(kv.Value));
+            if (!allFilledSymbols)
+            {
+                return (false, 0, _correctSymbolAnswers.Count);
             }
 
             if (IsOrderTokensMode() && ContentData?.AllowAnyOrder == true)
@@ -1714,10 +1877,10 @@ public partial class MatchingExerciseControl : UserControl
                     .GroupBy(value => value)
                     .ToDictionary(group => group.Key, group => group.Count());
 
-                bool unorderedAllCorrectSymbols = expectedCounts.Count == placedCounts.Count
+                var allCorrectSymbols = expectedCounts.Count == placedCounts.Count
                     && expectedCounts.All(kv => placedCounts.TryGetValue(kv.Key, out var count) && count == kv.Value);
 
-                int unorderedCorrectSymbols = expectedCounts.Sum(kv =>
+                var correctSymbols = expectedCounts.Sum(kv =>
                 {
                     return placedCounts.TryGetValue(kv.Key, out var placedCount)
                         ? Math.Min(kv.Value, placedCount)
@@ -1731,7 +1894,7 @@ public partial class MatchingExerciseControl : UserControl
                     var placed = _placedSymbols.GetValueOrDefault(rowIndex);
                     var isExpected = !string.IsNullOrEmpty(placed) && expectedCounts.ContainsKey(placed);
 
-                    if (unorderedAllCorrectSymbols || isExpected)
+                    if (allCorrectSymbols || isExpected)
                     {
                         dropBorder.Background = new SolidColorBrush(Color.Parse("#2ECC71"));
                         dropBorder.BorderBrush = new SolidColorBrush(Color.Parse("#27AE60"));
@@ -1743,145 +1906,71 @@ public partial class MatchingExerciseControl : UserControl
                     }
                 }
 
-                if (unorderedAllCorrectSymbols)
-                {
-                    validationMessage.Text = "¡Excelente! Respuestas correctas 🎉";
-                    validationMessage.Foreground = new SolidColorBrush(Color.Parse("#65E4A3"));
-                }
-                else
-                {
-                    validationMessage.Text = $"{unorderedCorrectSymbols}/{_correctSymbolAnswers.Count} correctas. ¡Intenta de nuevo!";
-                    validationMessage.Foreground = new SolidColorBrush(Color.Parse("#FF8A8A"));
-                }
-
-                ExerciseMessenger.NotifyExerciseCompleted(new ExerciseCompletedEventArgs
-                {
-                    CorrectCount = unorderedCorrectSymbols,
-                    TotalCount = _correctSymbolAnswers.Count,
-                    PointsEarned = unorderedCorrectSymbols * 10,
-                    SectionType = "practiquemos"
-                });
-
-                return;
+                return (true, correctSymbols, _correctSymbolAnswers.Count);
             }
 
-            bool allCorrectSymbols = true;
-            int correctSymbols = 0;
+            var totalSymbols = _correctSymbolAnswers.Count;
+            var correctCount = 0;
 
             foreach (var kv in _correctSymbolAnswers)
             {
                 var rowIndex = kv.Key;
                 var expected = kv.Value;
                 var placed = _placedSymbols.GetValueOrDefault(rowIndex);
+                var isCorrect = string.Equals(placed, expected, StringComparison.Ordinal);
 
-                bool isCorrect = string.Equals(placed, expected, StringComparison.Ordinal);
                 if (isCorrect)
                 {
-                    correctSymbols++;
-                    if (_dropTargets.TryGetValue(rowIndex, out var dropBorder))
-                    {
-                        dropBorder.Background = new SolidColorBrush(Color.Parse("#2ECC71"));
-                        dropBorder.BorderBrush = new SolidColorBrush(Color.Parse("#27AE60"));
-                    }
+                    correctCount++;
                 }
-                else
+
+                if (_dropTargets.TryGetValue(rowIndex, out var dropBorder))
                 {
-                    allCorrectSymbols = false;
-                    if (_dropTargets.TryGetValue(rowIndex, out var dropBorder))
-                    {
-                        dropBorder.Background = new SolidColorBrush(Color.Parse("#E74C3C"));
-                        dropBorder.BorderBrush = new SolidColorBrush(Color.Parse("#C0392B"));
-                    }
+                    dropBorder.Background = isCorrect
+                        ? new SolidColorBrush(Color.Parse("#2ECC71"))
+                        : new SolidColorBrush(Color.Parse("#E74C3C"));
+                    dropBorder.BorderBrush = isCorrect
+                        ? new SolidColorBrush(Color.Parse("#27AE60"))
+                        : new SolidColorBrush(Color.Parse("#C0392B"));
                 }
             }
 
-            if (allCorrectSymbols)
-            {
-                validationMessage.Text = IsOrderTokensMode()
-                    ? "¡Excelente! Todas las respuestas son correctas 🎉"
-                    : "¡Excelente! Todos los operadores son correctos 🎉";
-                validationMessage.Foreground = new SolidColorBrush(Color.Parse("#65E4A3"));
-            }
-            else
-            {
-                validationMessage.Text = $"{correctSymbols}/{_correctSymbolAnswers.Count} correctas. ¡Intenta de nuevo!";
-                validationMessage.Foreground = new SolidColorBrush(Color.Parse("#FF8A8A"));
-            }
-
-            ExerciseMessenger.NotifyExerciseCompleted(new ExerciseCompletedEventArgs
-            {
-                CorrectCount = correctSymbols,
-                TotalCount = _correctSymbolAnswers.Count,
-                PointsEarned = correctSymbols * 10,
-                SectionType = "practiquemos"
-            });
-
-            return;
+            return (true, correctCount, totalSymbols);
         }
 
-        // Verificar si todas las casillas están llenas
-        bool allFilled = _placedValues.All(kv => kv.Value.HasValue);
-        if (!allFilled)
+        var allFilledNumbers = _placedValues.All(kv => kv.Value.HasValue);
+        if (!allFilledNumbers)
         {
-            validationMessage.Text = "Coloca todos los números";
-            validationMessage.Foreground = new SolidColorBrush(Color.Parse("#FFD166"));
-            return;
+            return (false, 0, _correctAnswers.Count);
         }
 
-        // Verificar respuestas
-        bool allCorrect = true;
-        int correctCount = 0;
+        var totalCount = _correctAnswers.Count;
+        var numericCorrect = 0;
 
         foreach (var kv in _correctAnswers)
         {
-            int rowIndex = kv.Key;
-            int expected = kv.Value;
-            int? placed = _placedValues.GetValueOrDefault(rowIndex);
-
-            bool isCorrect = placed.HasValue && placed.Value == expected;
+            var rowIndex = kv.Key;
+            var expected = kv.Value;
+            var placed = _placedValues.GetValueOrDefault(rowIndex);
+            var isCorrect = placed.HasValue && placed.Value == expected;
 
             if (isCorrect)
             {
-                correctCount++;
-                // Marcar casilla en verde
-                if (_dropTargets.TryGetValue(rowIndex, out var dropBorder))
-                {
-                    dropBorder.Background = new SolidColorBrush(Color.Parse("#2ECC71"));
-                    dropBorder.BorderBrush = new SolidColorBrush(Color.Parse("#27AE60"));
-                }
+                numericCorrect++;
             }
-            else
+
+            if (_dropTargets.TryGetValue(rowIndex, out var dropBorder))
             {
-                allCorrect = false;
-                // Marcar casilla en rojo
-                if (_dropTargets.TryGetValue(rowIndex, out var dropBorder))
-                {
-                    dropBorder.Background = new SolidColorBrush(Color.Parse("#E74C3C"));
-                    dropBorder.BorderBrush = new SolidColorBrush(Color.Parse("#C0392B"));
-                }
+                dropBorder.Background = isCorrect
+                    ? new SolidColorBrush(Color.Parse("#2ECC71"))
+                    : new SolidColorBrush(Color.Parse("#E74C3C"));
+                dropBorder.BorderBrush = isCorrect
+                    ? new SolidColorBrush(Color.Parse("#27AE60"))
+                    : new SolidColorBrush(Color.Parse("#C0392B"));
             }
         }
 
-        if (allCorrect)
-        {
-            validationMessage.Text = "¡Excelente! Todas las respuestas son correctas 🎉";
-            validationMessage.Foreground = new SolidColorBrush(Color.Parse("#65E4A3"));
-        }
-        else
-        {
-            validationMessage.Text = $"{correctCount}/{_correctAnswers.Count} correctas. ¡Intenta de nuevo!";
-            validationMessage.Foreground = new SolidColorBrush(Color.Parse("#FF8A8A"));
-        }
-
-        // Notificar al ViewModel
-        int points = correctCount * 10;
-        ExerciseMessenger.NotifyExerciseCompleted(new ExerciseCompletedEventArgs
-        {
-            CorrectCount = correctCount,
-            TotalCount = _correctAnswers.Count,
-            PointsEarned = points,
-            SectionType = "desafio"
-        });
+        return (true, numericCorrect, totalCount);
     }
 
     private void ClearValidation()

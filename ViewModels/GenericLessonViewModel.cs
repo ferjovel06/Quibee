@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Linq;
 using System.Windows.Input;
 using System.Threading.Tasks;
@@ -13,6 +14,13 @@ namespace Quibee.ViewModels;
 /// </summary>
 public class GenericLessonViewModel : ViewModelBase
 {
+    private enum PendingProgressAction
+    {
+        None,
+        NextSection,
+        BackToMap
+    }
+
     private readonly MainWindowViewModel? _mainWindowViewModel;
     private readonly LessonData _lessonData;
     private readonly LessonContentService _contentService;
@@ -26,6 +34,9 @@ public class GenericLessonViewModel : ViewModelBase
     private string _popupMessage = "";
     private string _popupPoints = "";
     private bool _popupIsSuccess;
+    private PendingProgressAction _pendingProgressAction = PendingProgressAction.None;
+    private readonly HashSet<int> _pendingSectionExerciseIds = new();
+    private readonly HashSet<int> _completedSectionExerciseIds = new();
 
     public GenericLessonViewModel(
         MainWindowViewModel? mainWindowViewModel,
@@ -46,7 +57,7 @@ public class GenericLessonViewModel : ViewModelBase
         // Comandos
         VolverCommand = new RelayCommand(OnVolver);
         SectionClickCommand = new RelayCommand(param => OnSectionClick(param));
-        ClosePopupCommand = new RelayCommand(_ => ShowProgressPopup = false);
+        ClosePopupCommand = new RelayCommand(_ => OnClosePopup());
 
         // Escuchar eventos de ejercicios completados
         ExerciseMessenger.ExerciseCompleted += OnExerciseCompleted;
@@ -132,11 +143,51 @@ public class GenericLessonViewModel : ViewModelBase
                     CurrentSectionContents.Add(content);
                 }
             }
+
+            ResetSectionExerciseProgress();
         }
         catch (System.Exception)
         {
             // Error silencioso al cargar sección.
         }
+    }
+
+    private void ResetSectionExerciseProgress()
+    {
+        _pendingSectionExerciseIds.Clear();
+        _completedSectionExerciseIds.Clear();
+
+        foreach (var content in CurrentSectionContents)
+        {
+            if (IsTrackableExerciseContent(content))
+            {
+                _pendingSectionExerciseIds.Add(content.IdContent);
+            }
+        }
+    }
+
+    private static bool IsTrackableExerciseContent(LessonContent content)
+    {
+        if (content.ContentType.Equals("matching_exercise", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        if (!content.ContentType.Equals("visual_example", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var data = content.Data;
+        if (data == null)
+        {
+            return false;
+        }
+
+        return data.CorrectAnswer.HasValue
+            || (data.CorrectAnswers != null && data.CorrectAnswers.Count > 0)
+            || !string.IsNullOrWhiteSpace(data.CorrectTextAnswer)
+            || (data.CorrectTextAnswers != null && data.CorrectTextAnswers.Count > 0);
     }
 
     /// <summary>
@@ -320,6 +371,25 @@ public class GenericLessonViewModel : ViewModelBase
 
     // ─── Progreso y Popup ───
 
+    private void OnClosePopup()
+    {
+        ShowProgressPopup = false;
+
+        var action = _pendingProgressAction;
+        _pendingProgressAction = PendingProgressAction.None;
+
+        if (action == PendingProgressAction.NextSection)
+        {
+            _ = AdvanceToNextSectionAsync();
+            return;
+        }
+
+        if (action == PendingProgressAction.BackToMap)
+        {
+            OnVolver();
+        }
+    }
+
     private async void OnExerciseCompleted(object? sender, ExerciseCompletedEventArgs e)
     {
         // Registrar la sección del ejercicio como visitada
@@ -356,6 +426,121 @@ public class GenericLessonViewModel : ViewModelBase
 
             ShowProgressPopup = true;
         });
+
+        _pendingProgressAction = PendingProgressAction.None;
+
+        if (e.ContentId > 0 && _pendingSectionExerciseIds.Contains(e.ContentId))
+        {
+            if (e.AllCorrect)
+            {
+                _completedSectionExerciseIds.Add(e.ContentId);
+            }
+            else
+            {
+                _completedSectionExerciseIds.Remove(e.ContentId);
+            }
+        }
+
+        var sectionCompleted = e.IsSectionAggregate
+            ? e.AllCorrect
+            : _pendingSectionExerciseIds.Count == 0
+                ? e.AllCorrect
+                : _completedSectionExerciseIds.Count == _pendingSectionExerciseIds.Count;
+
+        if (!e.AllCorrect || !sectionCompleted || CurrentSection == null || Sections.Count == 0)
+        {
+            return;
+        }
+
+        var currentIndex = GetCurrentSectionIndex();
+        if (currentIndex < 0)
+        {
+            return;
+        }
+
+        _pendingProgressAction = currentIndex < Sections.Count - 1
+            ? PendingProgressAction.NextSection
+            : PendingProgressAction.BackToMap;
+    }
+
+    private async Task AdvanceToNextSectionAsync()
+    {
+        if (CurrentSection == null || Sections.Count == 0)
+        {
+            return;
+        }
+
+        var currentIndex = GetCurrentSectionIndex();
+        if (currentIndex < 0)
+        {
+            return;
+        }
+
+        var nextIndex = currentIndex + 1;
+        if (nextIndex >= Sections.Count)
+        {
+            return;
+        }
+
+        var nextSection = Sections[nextIndex];
+
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            ShowProgressPopup = false;
+            CurrentSection = nextSection;
+        });
+
+        var sectionKey = string.IsNullOrWhiteSpace(nextSection.Content)
+            ? nextSection.Name.ToLower().Replace(' ', '_')
+            : nextSection.Content;
+
+        await LoadSectionContentAndTrackAsync(sectionKey);
+    }
+
+    private int GetCurrentSectionIndex()
+    {
+        if (CurrentSection == null || Sections.Count == 0)
+        {
+            return -1;
+        }
+
+        var byReference = Sections.IndexOf(CurrentSection);
+        if (byReference >= 0)
+        {
+            return byReference;
+        }
+
+        var currentKey = NormalizeSectionKey(CurrentSection.Content, CurrentSection.Name);
+        if (string.IsNullOrEmpty(currentKey))
+        {
+            return -1;
+        }
+
+        for (var i = 0; i < Sections.Count; i++)
+        {
+            var key = NormalizeSectionKey(Sections[i].Content, Sections[i].Name);
+            if (string.Equals(key, currentKey, StringComparison.OrdinalIgnoreCase))
+            {
+                return i;
+            }
+        }
+
+        return -1;
+    }
+
+    private static string NormalizeSectionKey(string? content, string? name)
+    {
+        if (!string.IsNullOrWhiteSpace(content))
+        {
+            return content.Trim().ToLower();
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return string.Empty;
+        }
+
+        return name.Trim().ToLower().Replace(' ', '_');
     }
 
     /// <summary>

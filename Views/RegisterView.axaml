@@ -73,7 +73,7 @@
         <Style Selector="Border.registerPanel">
             <Setter Property="Background" Value="#4A2E5C"/>
             <Setter Property="CornerRadius" Value="30"/>
-            <Setter Property="Padding" Value="28"/>
+            <Setter Property="Padding" Value="34"/>
         </Style>
     </UserControl.Styles>
 
@@ -136,7 +136,8 @@
                             
                             <!-- Panel de Registro con fondo morado más oscuro -->
                             <Border Classes="registerPanel"
-                                    MaxWidth="490"
+                                    MaxWidth="580"
+                                    MinWidth="540"
                                     HorizontalAlignment="Stretch">
                                 <StackPanel Spacing="16">
                                     
@@ -149,7 +150,7 @@
                                                    HorizontalAlignment="Center"/>
                                         <TextBlock Text="Regístrate"
                                                    FontFamily="{StaticResource LilitaOne}"
-                                                   FontSize="44"
+                                                   FontSize="50"
                                                    Foreground="White"
                                                    HorizontalAlignment="Center"
                                                    Margin="0,0,0,4"/>
@@ -196,10 +197,28 @@
                                                    FontSize="17"
                                                    Foreground="White"/>
                                         <TextBox Classes="registerInput"
-                                                 Text="{Binding ClaveAcceso}"
+                                                 Text="{Binding ClaveAcceso, UpdateSourceTrigger=PropertyChanged}"
                                                  Watermark="****"
                                                  PasswordChar="●"
                                                  MaxLength="4"/>
+                                    </StackPanel>
+
+                                    <!-- Campo: Confirmar clave de acceso -->
+                                    <StackPanel Spacing="6">
+                                        <TextBlock Text="Confirmar clave de acceso:"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="17"
+                                                   Foreground="White"/>
+                                        <TextBox Classes="registerInput"
+                                                 Text="{Binding ConfirmarClaveAcceso, UpdateSourceTrigger=PropertyChanged}"
+                                                 Watermark="****"
+                                                 PasswordChar="●"
+                                                 MaxLength="4"/>
+                                        <TextBlock Text="{Binding MensajeErrorClave}"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="14"
+                                                   Foreground="#FF8A8A"
+                                                   IsVisible="{Binding MostrarErrorClave}"/>
                                     </StackPanel>
 
                                     <!-- Texto de ayuda -->

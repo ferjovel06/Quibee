@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Quibee.Database;
@@ -76,7 +77,7 @@ public class LessonContentService
             IdContent = -e.IdExercise, // negativo para distinguir de LESSON_CONTENT
             IdLesson   = e.IdLesson,
             ContentType = MapExerciseType(e.ExerciseType),
-            ContentDataJson = e.Config ?? "{}",
+            ContentDataJson = BuildExerciseContentJson(e.Config, e.Instructions),
             OrderIndex  = e.OrderIndex,
             SectionType = e.SectionType,
             IsActive    = e.IsActive,
@@ -101,6 +102,32 @@ public class LessonContentService
         "matching"     => "matching_exercise",
         _              => exerciseType
     };
+
+    private static string BuildExerciseContentJson(string? config, string? instructions)
+    {
+        var payload = string.IsNullOrWhiteSpace(config) ? "{}" : config;
+
+        JsonObject root;
+        try
+        {
+            root = JsonNode.Parse(payload) as JsonObject ?? new JsonObject();
+        }
+        catch
+        {
+            root = new JsonObject();
+        }
+
+        if (!string.IsNullOrWhiteSpace(instructions))
+        {
+            var current = root["instruction"]?.GetValue<string>();
+            if (string.IsNullOrWhiteSpace(current))
+            {
+                root["instruction"] = instructions;
+            }
+        }
+
+        return root.ToJsonString();
+    }
 
     /// <summary>
     /// Obtiene todas las secciones distintas de una lección.

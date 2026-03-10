@@ -178,7 +178,7 @@
                                                    FontSize="18"
                                                    Foreground="White"/>
                                         <TextBox Classes="loginInput"
-                                                 Text="{Binding NombreCompleto}"
+                                                 Text="{Binding NombreCompleto, UpdateSourceTrigger=PropertyChanged}"
                                                  Watermark="Ingresa tu nombre completo"/>
                                     </StackPanel>
 
@@ -189,10 +189,15 @@
                                                    FontSize="18"
                                                    Foreground="White"/>
                                         <TextBox Classes="loginInput"
-                                                 Text="{Binding ClaveAcceso}"
+                                                 Text="{Binding ClaveAcceso, UpdateSourceTrigger=PropertyChanged}"
                                                  Watermark="****"
                                                  PasswordChar="●"
                                                  MaxLength="4"/>
+                                        <TextBlock Text="{Binding MensajeErrorLogin}"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="14"
+                                                   Foreground="#FF8A8A"
+                                                   IsVisible="{Binding MostrarErrorLogin}"/>
                                     </StackPanel>
 
                                     <!-- Texto de ayuda -->

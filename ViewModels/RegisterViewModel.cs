@@ -14,6 +14,9 @@ public class RegisterViewModel : ViewModelBase
     private string _apellidos = "";
     private DateTimeOffset? _fechaNacimiento;
     private string _claveAcceso = "";
+    private string _confirmarClaveAcceso = "";
+    private string _mensajeErrorClave = "";
+    private bool _mostrarErrorClave;
 
     public RegisterViewModel(MainWindowViewModel? mainWindowViewModel = null)
     {
@@ -52,6 +55,32 @@ public class RegisterViewModel : ViewModelBase
         }
     }
 
+    public string MensajeErrorClave
+    {
+        get => _mensajeErrorClave;
+        private set
+        {
+            if (_mensajeErrorClave != value)
+            {
+                _mensajeErrorClave = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
+    public bool MostrarErrorClave
+    {
+        get => _mostrarErrorClave;
+        private set
+        {
+            if (_mostrarErrorClave != value)
+            {
+                _mostrarErrorClave = value;
+                OnPropertyChanged();
+            }
+        }
+    }
+
     public DateTimeOffset? FechaNacimiento
     {
         get => _fechaNacimiento;
@@ -77,6 +106,23 @@ public class RegisterViewModel : ViewModelBase
                 _claveAcceso = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(PuedeConfirmar));
+                UpdateClaveValidationMessage();
+                ((RelayCommand)ConfirmarCommand).RaiseCanExecuteChanged();
+            }
+        }
+    }
+
+    public string ConfirmarClaveAcceso
+    {
+        get => _confirmarClaveAcceso;
+        set
+        {
+            if (_confirmarClaveAcceso != value)
+            {
+                _confirmarClaveAcceso = value;
+                OnPropertyChanged();
+                OnPropertyChanged(nameof(PuedeConfirmar));
+                UpdateClaveValidationMessage();
                 ((RelayCommand)ConfirmarCommand).RaiseCanExecuteChanged();
             }
         }
@@ -113,7 +159,34 @@ public class RegisterViewModel : ViewModelBase
                !string.IsNullOrWhiteSpace(Apellidos) &&
                FechaNacimiento.HasValue &&
                !string.IsNullOrWhiteSpace(ClaveAcceso) &&
+             !string.IsNullOrWhiteSpace(ConfirmarClaveAcceso) &&
                ClaveAcceso.Length == 4 &&
-               ClaveAcceso.All(char.IsDigit);
+             ConfirmarClaveAcceso.Length == 4 &&
+             ClaveAcceso.All(char.IsDigit) &&
+             ConfirmarClaveAcceso.All(char.IsDigit) &&
+             ClaveAcceso == ConfirmarClaveAcceso;
+    }
+
+    private void UpdateClaveValidationMessage()
+    {
+        var hasBothValues = !string.IsNullOrWhiteSpace(ClaveAcceso)
+            && !string.IsNullOrWhiteSpace(ConfirmarClaveAcceso);
+
+        if (!hasBothValues)
+        {
+            MensajeErrorClave = "";
+            MostrarErrorClave = false;
+            return;
+        }
+
+        if (ClaveAcceso != ConfirmarClaveAcceso)
+        {
+            MensajeErrorClave = "Las claves de acceso no coinciden.";
+            MostrarErrorClave = true;
+            return;
+        }
+
+        MensajeErrorClave = "";
+        MostrarErrorClave = false;
     }
 }

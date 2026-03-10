@@ -20,8 +20,6 @@ public partial class VisualExampleControl : UserControl
     private const string DefaultNumberImagePattern = "avares://Quibee/Assets/Images/{0}.png";
     private bool _expectsTextAnswers;
     private string? _groupKey;
-
-    private static readonly Dictionary<string, List<WeakReference<VisualExampleControl>>> GroupedControls = new();
     private static readonly FontFamily EmojiFontFamily = FontFamily.Parse("Segoe UI Emoji, Segoe UI Symbol");
     private static readonly FontFamily SymbolFontFamily = FontFamily.Parse("Segoe UI Symbol, Segoe UI Emoji");
 
@@ -135,17 +133,24 @@ public partial class VisualExampleControl : UserControl
         RegisterOrUpdateGroupMembership();
     }
 
-    private bool IsSingleCheckModeForLesson6Practiquemos()
+    private bool IsSingleCheckModeForExerciseSection()
     {
-        return LessonContext != null
-            && LessonContext.IdLesson == 6
-            && string.Equals(LessonContext.SectionType, "practiquemos", StringComparison.OrdinalIgnoreCase)
-            && LessonContext.IdContent < 0;
+        var sectionType = LessonContext?.SectionType;
+
+        if (string.IsNullOrWhiteSpace(sectionType))
+        {
+            return false;
+        }
+
+        return sectionType.Equals("practiquemos", StringComparison.OrdinalIgnoreCase)
+            || sectionType.Equals("ejercitemos", StringComparison.OrdinalIgnoreCase)
+            || sectionType.Equals("resolvamos", StringComparison.OrdinalIgnoreCase)
+            || sectionType.Equals("desafio", StringComparison.OrdinalIgnoreCase);
     }
 
     private void RegisterOrUpdateGroupMembership()
     {
-        if (!IsSingleCheckModeForLesson6Practiquemos())
+        if (!IsSingleCheckModeForExerciseSection() || !HasEvaluableAnswers())
         {
             UnregisterFromGroup();
             return;
@@ -153,20 +158,32 @@ public partial class VisualExampleControl : UserControl
 
         _groupKey = $"{LessonContext!.IdLesson}:{LessonContext.SectionType}";
 
-        if (!GroupedControls.TryGetValue(_groupKey, out var group))
+        SectionCheckCoordinator.Register(
+            _groupKey,
+            this,
+            LessonContext?.OrderIndex ?? int.MaxValue,
+            EvaluateForSectionCheck,
+            isHost =>
+            {
+                var validationContainer = this.FindControl<StackPanel>("ValidationContainer");
+                if (validationContainer != null)
+                {
+                    validationContainer.IsVisible = isHost;
+                }
+            });
+    }
+
+    private bool HasEvaluableAnswers()
+    {
+        if (ContentData == null)
         {
-            group = new List<WeakReference<VisualExampleControl>>();
-            GroupedControls[_groupKey] = group;
+            return false;
         }
 
-        var alreadyRegistered = group.Any(wr => wr.TryGetTarget(out var target) && ReferenceEquals(target, this));
-        if (!alreadyRegistered)
-        {
-            group.Add(new WeakReference<VisualExampleControl>(this));
-        }
-
-        CleanupDeadReferences(group);
-        RefreshGroupVisibility(_groupKey);
+        return ContentData.CorrectAnswer.HasValue
+            || (ContentData.CorrectAnswers != null && ContentData.CorrectAnswers.Count > 0)
+            || !string.IsNullOrWhiteSpace(ContentData.CorrectTextAnswer)
+            || (ContentData.CorrectTextAnswers != null && ContentData.CorrectTextAnswers.Count > 0);
     }
 
     private void UnregisterFromGroup()
@@ -176,75 +193,21 @@ public partial class VisualExampleControl : UserControl
             return;
         }
 
-        if (GroupedControls.TryGetValue(_groupKey, out var group))
-        {
-            group.RemoveAll(wr => !wr.TryGetTarget(out var target) || ReferenceEquals(target, this));
-            if (group.Count == 0)
-            {
-                GroupedControls.Remove(_groupKey);
-            }
-            else
-            {
-                RefreshGroupVisibility(_groupKey);
-            }
-        }
+        SectionCheckCoordinator.Unregister(_groupKey, this);
 
         _groupKey = null;
     }
 
-    private static void CleanupDeadReferences(List<WeakReference<VisualExampleControl>> group)
+    private SectionCheckResult EvaluateForSectionCheck()
     {
-        group.RemoveAll(wr => !wr.TryGetTarget(out _));
-    }
-
-    private static List<VisualExampleControl> GetLiveGroupControls(string key)
-    {
-        if (!GroupedControls.TryGetValue(key, out var group))
+        var result = EvaluateAnswers();
+        if (result.totalCount == 0)
         {
-            return new List<VisualExampleControl>();
+            return new SectionCheckResult(true, 0, 0);
         }
 
-        CleanupDeadReferences(group);
-
-        return group
-            .Select(wr => wr.TryGetTarget(out var control) ? control : null)
-            .Where(control => control != null)
-            .Cast<VisualExampleControl>()
-            .OrderBy(control => control.LessonContext?.OrderIndex ?? int.MaxValue)
-            .ToList();
-    }
-
-    private static void RefreshGroupVisibility(string key)
-    {
-        var controls = GetLiveGroupControls(key);
-        if (controls.Count == 0)
-        {
-            return;
-        }
-
-        var host = controls.Last();
-
-        foreach (var control in controls)
-        {
-            var validationContainer = control.FindControl<StackPanel>("ValidationContainer");
-            if (validationContainer == null)
-            {
-                continue;
-            }
-
-            validationContainer.IsVisible = ReferenceEquals(control, host);
-        }
-    }
-
-    private bool IsGroupHostControl()
-    {
-        if (string.IsNullOrEmpty(_groupKey))
-        {
-            return true;
-        }
-
-        var controls = GetLiveGroupControls(_groupKey);
-        return controls.Count == 0 || ReferenceEquals(controls.Last(), this);
+        var isReady = _answerInputs.Count > 0 && _answerInputs.All(input => !string.IsNullOrWhiteSpace(input.Text));
+        return new SectionCheckResult(isReady, result.correctCount, result.totalCount);
     }
 
     private (bool isCorrect, int correctCount, int totalCount) EvaluateAnswers()
@@ -560,7 +523,36 @@ public partial class VisualExampleControl : UserControl
         if (!string.IsNullOrEmpty(obj.Symbol))
         {
             var isLongText = obj.Symbol.Length > 4;
+            var isParagraphLike = obj.Symbol.Length > 20;
             var isArrow = obj.Symbol == "→";
+
+            if (isParagraphLike)
+            {
+
+                var paragraph = new TextBlock
+                {
+                    Text = obj.Symbol,
+                    FontSize = Math.Min(obj.FontSize ?? 36, 42),
+                    FontWeight = FontWeight.Bold,
+                    FontFamily = SymbolFontFamily,
+                    Foreground = !string.IsNullOrEmpty(obj.Color)
+                        ? new SolidColorBrush(Color.Parse(obj.Color))
+                        : Brushes.White,
+                    VerticalAlignment = VerticalAlignment.Center,
+                    TextWrapping = TextWrapping.Wrap,
+                    TextAlignment = TextAlignment.Left,
+                    MaxWidth = 620,
+                    LineHeight = 44
+                };
+
+                return new Border
+                {
+                    Background = Brushes.Transparent,
+                    Margin = new Thickness(6, 0, 0, 0),
+                    VerticalAlignment = VerticalAlignment.Center,
+                    Child = paragraph
+                };
+            }
 
             return new TextBlock
             {
@@ -780,7 +772,9 @@ public partial class VisualExampleControl : UserControl
                 Source = bitmap,
                 Width = width ?? bitmap.PixelSize.Width,
                 Height = height ?? bitmap.PixelSize.Height,
-                VerticalAlignment = VerticalAlignment.Center
+                VerticalAlignment = VerticalAlignment.Center,
+                Stretch = Stretch.Uniform,
+                Margin = new Thickness(0, 2, 0, 0)
             };
         }
         catch
@@ -856,26 +850,25 @@ public partial class VisualExampleControl : UserControl
             return;
         }
 
-        if (IsSingleCheckModeForLesson6Practiquemos())
+        var sectionType = LessonContext?.SectionType ?? "resolvamos";
+
+        if (IsSingleCheckModeForExerciseSection())
         {
-            if (!IsGroupHostControl())
+            if (string.IsNullOrEmpty(_groupKey) || !SectionCheckCoordinator.IsHost(_groupKey, this))
             {
                 return;
             }
 
-            var controls = string.IsNullOrEmpty(_groupKey)
-                ? new List<VisualExampleControl> { this }
-                : GetLiveGroupControls(_groupKey!);
-
-            var groupTotalCount = 0;
-            var groupCorrectCount = 0;
-
-            foreach (var control in controls)
+            var groupResult = SectionCheckCoordinator.EvaluateGroup(_groupKey);
+            if (!groupResult.AllReady)
             {
-                var result = control.EvaluateAnswers();
-                groupTotalCount += result.totalCount;
-                groupCorrectCount += result.correctCount;
+                validationMessage.Text = "Completa todos los ejercicios antes de comprobar";
+                validationMessage.Foreground = new SolidColorBrush(Color.Parse("#FFD166"));
+                return;
             }
+
+            var groupTotalCount = groupResult.TotalCount;
+            var groupCorrectCount = groupResult.CorrectCount;
 
             var allCorrect = groupTotalCount > 0 && groupCorrectCount == groupTotalCount;
             validationMessage.Text = allCorrect
@@ -890,7 +883,9 @@ public partial class VisualExampleControl : UserControl
                 CorrectCount = groupCorrectCount,
                 TotalCount = groupTotalCount,
                 PointsEarned = groupCorrectCount * 10,
-                SectionType = "resolvamos"
+                SectionType = sectionType,
+                ContentId = LessonContext?.IdContent ?? 0,
+                IsSectionAggregate = true
             });
 
             return;
@@ -916,8 +911,10 @@ public partial class VisualExampleControl : UserControl
         {
             CorrectCount = correctCount,
             TotalCount = totalCount,
-            PointsEarned = isCorrect ? 10 : 0,
-            SectionType = "resolvamos"
+            PointsEarned = correctCount * 10,
+            SectionType = sectionType,
+            ContentId = LessonContext?.IdContent ?? 0,
+            IsSectionAggregate = false
         });
     }
 }

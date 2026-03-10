@@ -27,141 +27,136 @@
     </UserControl.Styles>
 
     <!-- ============================================ -->
-    <!-- CONTENEDOR PRINCIPAL                        -->
-    <!-- Grid base con fondo y capas superpuestas    -->
+    <!-- CONTENEDOR PRINCIPAL (responsive full-screen) -->
     <!-- ============================================ -->
-    <!-- Contenedor principal con scroll y escalado responsivo -->
     <Border Background="#311B42">
-        <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto">
-            <!-- Viewbox permite escalar el contenido en pantallas pequeñas -->
-            <Viewbox Stretch="Uniform" StretchDirection="Both">
-                <Grid Width="1200" Height="700"> <!-- canvas virtual para mantener proporciones -->
-                    <!-- CAPA DECORATIVA - Elementos espaciales -->
-                    <Grid>
-                        <!-- Números decorativos - con Max sizes para responder -->
-                        <Image Source="/Assets/Images/2.png" 
-                               MaxWidth="120" MaxHeight="120"
-                               HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                               Margin="0,0,0,200"
-                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
-                        
-                        <Image Source="/Assets/Images/3.png" 
-                               MaxWidth="100" MaxHeight="100"
-                               HorizontalAlignment="Right" VerticalAlignment="Bottom"
-                               Margin="0,0,500,0"
-                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+        <Grid ClipToBounds="True">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="1.35*"/>
+                <ColumnDefinition Width="2.15*"/>
+                <ColumnDefinition Width="1.2*"/>
+            </Grid.ColumnDefinitions>
 
-                        <!-- Elementos celestes principales con Max sizes y Stretch -->
-                        <Image Source="/Assets/Images/Earth.png" MaxWidth="200" MaxHeight="200"
-                               HorizontalAlignment="Left" VerticalAlignment="Bottom"
-                               Margin="0,0,0,0" Opacity="0.9" Stretch="Uniform"/>
+            <!-- Decoración -->
+            <Image Grid.Row="0" Grid.Column="0"
+                   Source="/Assets/Images/ShootingStar.png"
+                   MaxWidth="300" MaxHeight="300"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Top"
+                   Margin="30,10,0,0"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"/>
 
-                        <Image Source="/Assets/Images/Saturn.png" MaxWidth="300" MaxHeight="300"
-                               HorizontalAlignment="Right" VerticalAlignment="Top"
-                               Margin="0,0,0,0" Opacity="0.95" Stretch="Uniform"/>
-                    </Grid>
+            <Image Grid.Row="0" Grid.Column="1"
+                   Source="/Assets/Images/1.png"
+                   MaxWidth="110" MaxHeight="110"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Top"
+                   Margin="0,6,0,0"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"/>
 
-                    <!-- CAPA DE CONTENIDO - Layout principal (proporcionado dentro del Viewbox) -->
-                    <Grid>
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="*"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="Auto"/>
-                            <RowDefinition Height="*"/>
-                        </Grid.RowDefinitions>
-                        
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="2*"/>
-                            <ColumnDefinition Width="4*"/>
-                            <ColumnDefinition Width="1.5*"/>
-                        </Grid.ColumnDefinitions>
+            <Image Grid.Row="0" Grid.Column="2"
+                   Source="/Assets/Images/Saturn.png"
+                   MaxWidth="320" MaxHeight="320"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Top"
+                   Margin="0,10,12,0"
+                   Opacity="0.95"
+                   Stretch="Uniform"/>
 
-                        <Image Grid.Row="0" Grid.Column="0"
-                               Source="/Assets/Images/ShootingStar.png"
-                               MaxWidth="320" MaxHeight="320"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Margin="80,5,0,0"
-                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
+            <Image Grid.Row="2" Grid.Column="0"
+                   Source="/Assets/Images/Earth.png"
+                   MaxWidth="260" MaxHeight="260"
+                   HorizontalAlignment="Left"
+                   VerticalAlignment="Bottom"
+                   Margin="12,0,0,0"
+                   Opacity="0.9"
+                   Stretch="Uniform"/>
 
-                        <!-- Robot Quibee - Mascota principal (izquierda centro) -->
-                        <Border Grid.Row="0" Grid.RowSpan="5" Grid.Column="0"
-                                MaxWidth="360" MaxHeight="450"
-                                VerticalAlignment="Center"
+            <Image Grid.Row="2" Grid.Column="1"
+                   Source="/Assets/Images/3.png"
+                   MaxWidth="120" MaxHeight="120"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Bottom"
+                   Margin="0,0,80,8"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"/>
+
+            <Image Grid.Row="1" Grid.Column="2"
+                   Source="/Assets/Images/2.png"
+                   MaxWidth="130" MaxHeight="130"
+                   HorizontalAlignment="Right"
+                   VerticalAlignment="Center"
+                   Margin="0,0,36,0"
+                   RenderOptions.BitmapInterpolationMode="HighQuality"/>
+
+            <!-- Bloque central responsive: robot + texto + CTA -->
+            <Viewbox Grid.Row="1" Grid.ColumnSpan="3"
+                     Stretch="Uniform"
+                     StretchDirection="Both"
+                     HorizontalAlignment="Center"
+                     VerticalAlignment="Center"
+                     Margin="20,0,20,0"
+                     MaxWidth="1250">
+                <Grid Width="1040" Height="430">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="360"/>
+                        <ColumnDefinition Width="680"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Image Grid.Column="0"
+                           Source="/Assets/Images/Robot.png"
+                           Width="340"
+                           Height="410"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           RenderOptions.BitmapInterpolationMode="HighQuality"/>
+
+                    <StackPanel Grid.Column="1"
                                 HorizontalAlignment="Left"
-                                Margin="50,0,0,0">
-                            <Image Source="/Assets/Images/Robot.png"
-                                Stretch="Uniform"
                                 VerticalAlignment="Center"
-                                HorizontalAlignment="Center"
-                                RenderOptions.BitmapInterpolationMode="HighQuality"/>
-                        </Border>
+                                Margin="0,6,0,0"
+                                Spacing="8"
+                                RenderTransformOrigin="0,0.5">
+                        <StackPanel.RenderTransform>
+                            <RotateTransform Angle="-3"/>
+                        </StackPanel.RenderTransform>
 
-                        <!-- Número 1 decorativo - Sobre el saludo -->
-                        <Image Grid.Row="0" Grid.Column="1"
-                               Source="/Assets/Images/1.png" 
-                               MaxWidth="100" MaxHeight="100"
-                               HorizontalAlignment="Left"
-                               VerticalAlignment="Top"
-                               Margin="200,0,0,0" 
-                               RenderOptions.BitmapInterpolationMode="HighQuality"/>
-
-                        <!-- CONTENIDO TEXTUAL -->
-                        <TextBlock Grid.Row="1" Grid.Column="1"
-                                  Text="Bienvenido"
+                        <TextBlock Text="Bienvenido"
                                   FontFamily="{StaticResource LilitaOne}"
-                                  FontSize="48"
+                                  FontSize="56"
                                   Foreground="#F25E67"
-                                  HorizontalAlignment="Left"
-                                  Margin="0,0,0,10">
-                            <TextBlock.RenderTransform>
-                                <RotateTransform Angle="-3"/>
-                            </TextBlock.RenderTransform>
-                        </TextBlock>
+                                  HorizontalAlignment="Left"/>
 
-                        <StackPanel Grid.Row="2" Grid.Column="1"
-                                    HorizontalAlignment="Left"
-                                    VerticalAlignment="Center"
-                                    Margin="0,0,0,40"
-                                    Spacing="0"
-                                    RenderTransformOrigin="0,0.5">
-                            <StackPanel.RenderTransform>
-                                <RotateTransform Angle="-3"/>
-                            </StackPanel.RenderTransform>
-                            <TextBlock Text="Matemáticas"
+                        <TextBlock Text="Matemáticas"
+                                  FontFamily="{StaticResource LilitaOne}"
+                                  FontSize="96"
+                                  Foreground="#F2F2F2"
+                                  HorizontalAlignment="Left"
+                                  TextWrapping="NoWrap"/>
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="16">
+                            <TextBlock Text="con"
                                       FontFamily="{StaticResource LilitaOne}"
-                                      FontSize="100"
-                                      Foreground="#F2F2F2"
-                                      HorizontalAlignment="Left"
-                                      TextAlignment="Left"
-                                      TextWrapping="NoWrap"/>
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="15">
-                                <TextBlock Text="con"
-                                          FontFamily="{StaticResource LilitaOne}"
-                                          FontSize="100"
-                                          Foreground="#F2F2F2"/>
-                                <TextBlock Text="Q-BIT"
-                                          FontFamily="{StaticResource LilitaOne}"
-                                          FontSize="100"
-                                          Foreground="#7CDAF3"/>
-                            </StackPanel>
+                                      FontSize="96"
+                                      Foreground="#F2F2F2"/>
+                            <TextBlock Text="Q-BIT"
+                                      FontFamily="{StaticResource LilitaOne}"
+                                      FontSize="96"
+                                      Foreground="#7CDAF3"/>
                         </StackPanel>
 
-                        <Button Grid.Row="3" Grid.Column="1"
-                               Classes="welcomeButton"
-                               Content="Inicio"
-                               Command="{Binding StartCommand}"
-                               HorizontalAlignment="Left"
-                               Margin="20,-15,0,0"
-                               RenderTransformOrigin="0,0.5">
-                            <Button.RenderTransform>
-                                <RotateTransform Angle="-3"/>
-                            </Button.RenderTransform>
-                        </Button>
-                    </Grid>
+                        <Button Classes="welcomeButton"
+                                Content="Inicio"
+                                Command="{Binding StartCommand}"
+                                HorizontalAlignment="Left"
+                                Margin="20,2,0,0"/>
+                    </StackPanel>
                 </Grid>
             </Viewbox>
-        </ScrollViewer>
+        </Grid>
     </Border>
 </UserControl>

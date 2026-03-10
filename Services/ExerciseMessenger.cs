@@ -28,6 +28,16 @@ public class ExerciseCompletedEventArgs : EventArgs
     public int PointsEarned { get; set; }
 
     /// <summary>
+    /// Identificador del contenido que originó el evento.
+    /// </summary>
+    public int ContentId { get; set; }
+
+    /// <summary>
+    /// Indica si el evento corresponde a una validación agregada de toda la etapa.
+    /// </summary>
+    public bool IsSectionAggregate { get; set; }
+
+    /// <summary>
     /// Tipo de sección donde se completó (resolvamos, desafio, etc.)
     /// </summary>
     public string SectionType { get; set; } = string.Empty;

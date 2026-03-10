@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Data.Common;
 using System.Linq;
@@ -15,6 +16,15 @@ namespace Quibee.Services;
 /// </summary>
 public class DataSeederService
 {
+    private readonly record struct StudentDataSnapshot(
+        long Students,
+        long LevelProgress,
+        long LessonProgress,
+        long ExerciseAttempts,
+        long Stats,
+        long Achievements,
+        long SessionLogs);
+
     private readonly QuibeeDbContext _context;
     private static readonly string SeedLogPath = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
@@ -45,6 +55,7 @@ public class DataSeederService
         if (hasCurriculum)
         {
             Console.WriteLine("✓ La base de datos ya contiene currículo. No se inicializará.");
+            await ApplyCurriculumHotfixesAsync();
             return;
         }
 
@@ -53,6 +64,7 @@ public class DataSeederService
         if (await TrySeedCurriculumFromTemplateAsync())
         {
             Console.WriteLine("✓ Currículo cargado desde plantilla SQLite embebida.");
+            await ApplyCurriculumHotfixesAsync();
             Log("Seed from template succeeded");
             return;
         }
@@ -272,6 +284,13 @@ public class DataSeederService
 
     private async Task<bool> TrySeedCurriculumFromTemplateAsync()
     {
+        if (await HasAnyStudentDataAsync())
+        {
+            Log("Reseed skipped: local student data detected");
+            Console.WriteLine("ℹ️ Se detectaron estudiantes/progreso local. Se omite reseed de currículo para proteger datos del usuario.");
+            return false;
+        }
+
         var candidatePaths = GetSeedCandidatePaths();
 
         var seedPath = candidatePaths.FirstOrDefault(File.Exists);
@@ -308,6 +327,9 @@ public class DataSeederService
                 await transaction.RollbackAsync();
                 return false;
             }
+
+            var studentDataBefore = await GetStudentDataSnapshotAsync();
+            Log($"Student snapshot before curriculum import: {FormatStudentSnapshot(studentDataBefore)}");
 
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM EXERCISE;");
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM LESSON_CONTENT;");
@@ -355,6 +377,15 @@ FROM seed.ACHIEVEMENT;");
                 throw new InvalidOperationException("La importación de currículo quedó vacía después del copiado.");
             }
 
+            var studentDataAfter = await GetStudentDataSnapshotAsync();
+            Log($"Student snapshot after curriculum import: {FormatStudentSnapshot(studentDataAfter)}");
+
+            if (studentDataBefore != studentDataAfter)
+            {
+                throw new InvalidOperationException(
+                    "Se detectó cambio en tablas de estudiante/progreso durante el reseed de currículo. Operación abortada para proteger datos.");
+            }
+
             Log($"Import completed LESSON={importedLessons} LESSON_CONTENT={importedContents} EXERCISE={importedExercises}");
 
             try
@@ -394,6 +425,56 @@ FROM seed.ACHIEVEMENT;");
 
             await transaction.RollbackAsync();
             return false;
+        }
+    }
+
+    private async Task<bool> HasAnyStudentDataAsync()
+    {
+        return await _context.Students.AnyAsync()
+            || await _context.StudentLevelProgress.AnyAsync()
+            || await _context.StudentLessonProgress.AnyAsync()
+            || await _context.ExerciseAttempts.AnyAsync()
+            || await _context.StudentStats.AnyAsync()
+            || await _context.StudentAchievements.AnyAsync()
+            || await _context.SessionLogs.AnyAsync();
+    }
+
+    private async Task ApplyCurriculumHotfixesAsync()
+    {
+        try
+        {
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+UPDATE LESSON_CONTENT
+SET content_data = {"{\"text\": \"En esta lección aprenderás a relacionar cantidades con números usando ejemplos de tu vida diaria. Verás grupos de objetos y practicarás cómo identificar el número correcto para cada grupo.\", \"fontSize\": 16, \"color\": \"#FFFFFF\"}"}
+WHERE id_content = 12;");
+
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+UPDATE LESSON_CONTENT
+SET content_data = {"{\"text\": \"Relacionar números con objetos significa contar elementos y asociar ese total con su número. Por ejemplo, si observas 5 manzanas, el número que representa esa cantidad es 5.\", \"fontSize\": 16, \"color\": \"#FFFFFF\"}"}
+WHERE id_content = 14;");
+
+            await _context.Database.ExecuteSqlInterpolatedAsync($@"
+UPDATE LESSON_CONTENT
+SET content_data = {"{\"text\": \"Galletas en el plato: 🍪🍪🍪🍪🍪 (5 galletas)\", \"fontSize\": 16, \"color\": \"#FFFFFF\", \"isBulletPoint\": true}"}
+WHERE id_content = 16;");
+
+            await _context.Database.ExecuteSqlRawAsync(@"
+INSERT INTO LESSON_CONTENT (id_content, id_lesson, content_type, content_data, order_index, section_type, is_active, created_at, updated_at)
+SELECT 3273, 5, 'text', json_object('text', 'Problema 1: Imagina que estás organizando una fiesta de cumpleaños. Al inicio, tienes 7 globos. Tus amigos traen 8 globos más. ¿Cuántos globos tienes en total para la fiesta?', 'fontSize', 16, 'color', '#FFFFFF'), 3, 'desafio', 1, datetime('now'), NULL
+WHERE NOT EXISTS (SELECT 1 FROM LESSON_CONTENT WHERE id_content = 3273);
+
+INSERT INTO LESSON_CONTENT (id_content, id_lesson, content_type, content_data, order_index, section_type, is_active, created_at, updated_at)
+SELECT 3274, 5, 'text', json_object('text', 'Problema 2: En la cocina hay 9 naranjas y traes 4 más del mercado. ¿Cuántas naranjas hay en total?', 'fontSize', 16, 'color', '#FFFFFF'), 7, 'desafio', 1, datetime('now'), NULL
+WHERE NOT EXISTS (SELECT 1 FROM LESSON_CONTENT WHERE id_content = 3274);
+
+INSERT INTO LESSON_CONTENT (id_content, id_lesson, content_type, content_data, order_index, section_type, is_active, created_at, updated_at)
+SELECT 3275, 5, 'text', json_object('text', 'Problema 3: Tienes 2 peluches y recibes 5 más como regalo. ¿Cuántos peluches tienes ahora?', 'fontSize', 16, 'color', '#FFFFFF'), 11, 'desafio', 1, datetime('now'), NULL
+WHERE NOT EXISTS (SELECT 1 FROM LESSON_CONTENT WHERE id_content = 3275);
+");
+        }
+        catch (Exception ex)
+        {
+            Log($"Curriculum hotfix failed: {ex.Message}");
         }
     }
 
@@ -473,5 +554,30 @@ FROM seed.ACHIEVEMENT;");
 
         var result = await command.ExecuteScalarAsync();
         return Convert.ToInt64(result);
+    }
+
+    private async Task<StudentDataSnapshot> GetStudentDataSnapshotAsync()
+    {
+        var students = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM STUDENT;");
+        var levelProgress = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM STUDENT_LEVEL_PROGRESS;");
+        var lessonProgress = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM STUDENT_LESSON_PROGRESS;");
+        var exerciseAttempts = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM EXERCISE_ATTEMPT;");
+        var stats = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM STUDENT_STATS;");
+        var achievements = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM STUDENT_ACHIEVEMENT;");
+        var sessionLogs = await ExecuteScalarLongAsync("SELECT COUNT(*) FROM SESSION_LOG;");
+
+        return new StudentDataSnapshot(
+            students,
+            levelProgress,
+            lessonProgress,
+            exerciseAttempts,
+            stats,
+            achievements,
+            sessionLogs);
+    }
+
+    private static string FormatStudentSnapshot(StudentDataSnapshot snapshot)
+    {
+        return $"STUDENT={snapshot.Students}, STUDENT_LEVEL_PROGRESS={snapshot.LevelProgress}, STUDENT_LESSON_PROGRESS={snapshot.LessonProgress}, EXERCISE_ATTEMPT={snapshot.ExerciseAttempts}, STUDENT_STATS={snapshot.Stats}, STUDENT_ACHIEVEMENT={snapshot.Achievements}, SESSION_LOG={snapshot.SessionLogs}";
     }
 }
