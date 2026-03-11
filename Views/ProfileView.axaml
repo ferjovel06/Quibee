@@ -1,0 +1,204 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="using:Quibee.ViewModels"
+             xmlns:models="using:Quibee.Models"
+             x:Class="Quibee.Views.ProfileView"
+             x:DataType="vm:ProfileViewModel">
+
+    <UserControl.Styles>
+        <Style Selector="Button.topNavButton">
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="28,8"/>
+            <Setter Property="CornerRadius" Value="20"/>
+            <Setter Property="Cursor" Value="Hand"/>
+        </Style>
+
+        <Style Selector="Button.topNavButton TextBlock">
+            <Setter Property="FontFamily" Value="{StaticResource LilitaOne}"/>
+            <Setter Property="FontSize" Value="22"/>
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+
+        <Style Selector="Button.topNavButton.active">
+            <Setter Property="Background" Value="#FF3A64"/>
+        </Style>
+
+        <Style Selector="Button.topNavButton.active TextBlock">
+            <Setter Property="Foreground" Value="White"/>
+        </Style>
+    </UserControl.Styles>
+
+    <Border Background="#1B2352">
+        <Grid RowDefinitions="Auto,*">
+            <Border Grid.Row="0"
+                    HorizontalAlignment="Stretch"
+                    Height="74"
+                    Background="Transparent">
+                <Grid Margin="0,8,0,0"
+                      ColumnDefinitions="Auto,*">
+                    <Border Grid.Column="0"
+                            Width="380"
+                            Background="Transparent"
+                            HorizontalAlignment="Left"
+                            Margin="28,0,0,0"/>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Margin="0,4,46,0"
+                                Spacing="40">
+                        <Button Classes="topNavButton" Command="{Binding InicioCommand}">
+                            <TextBlock Text="Inicio"/>
+                        </Button>
+
+                        <Button Classes="topNavButton active" Command="{Binding LeccionesCommand}">
+                            <TextBlock Text="Lecciones"/>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Grid Grid.Row="1"
+                  Margin="28,20,28,20"
+                  ColumnDefinitions="4*,8*">
+                <StackPanel Grid.Column="0"
+                    Margin="32,26,12,0"
+                        Width="380"
+                        Spacing="18"
+                        HorizontalAlignment="Left"
+                        VerticalAlignment="Top">
+
+                <Border Height="50"
+                    Background="#AEE6FF"
+                    CornerRadius="18"
+                    HorizontalAlignment="Stretch"
+                    VerticalAlignment="Center">
+                    <TextBlock Text="PERFIL DE USUARIO"
+                           FontFamily="{StaticResource LilitaOne}"
+                           FontSize="22"
+                           Foreground="#143B67"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"/>
+                </Border>
+
+                <Border HorizontalAlignment="Stretch"
+                        Background="#7CDAF3"
+                        CornerRadius="22"
+                        Padding="18,16,18,18">
+                    <StackPanel Spacing="12">
+                        <TextBlock Text="Lecciones completadas:"
+                                   FontFamily="{StaticResource Poppins}"
+                                   FontWeight="SemiBold"
+                                   FontSize="14"
+                                   Foreground="#15335F"/>
+
+                        <ItemsControl ItemsSource="{Binding CompletedLessons}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="models:ProfileLessonSummary">
+                                    <Grid ColumnDefinitions="34,*" Margin="0,2,0,8">
+                                        <TextBlock Grid.Column="0"
+                                                   Text="{Binding DisplayNumber}"
+                                                   FontFamily="{StaticResource LilitaOne}"
+                                                   FontSize="30"
+                                                   Foreground="#F5F7FF"
+                                                   VerticalAlignment="Top"/>
+                                        <TextBlock Grid.Column="1"
+                                                   Margin="10,6,0,0"
+                                                   Text="{Binding Title}"
+                                                   FontFamily="{StaticResource Poppins}"
+                                                   FontSize="13"
+                                                   Foreground="#16345E"
+                                                   TextWrapping="Wrap"
+                                                   MaxWidth="280"/>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Border>
+
+                <Border HorizontalAlignment="Stretch"
+                        Background="#7CDAF3"
+                        CornerRadius="22"
+                        Padding="16,14,18,18">
+                    <StackPanel Spacing="12">
+                           <Grid ColumnDefinitions="52,*" Margin="0,2,0,0">
+                            <Image Grid.Column="0"
+                                   Source="avares://Quibee/Assets/Images/Cake.png"
+                                Width="48"
+                                Height="48"
+                                VerticalAlignment="Top"
+                                Margin="0,4,0,0"/>
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="Fecha de nacimiento:"
+                                           FontFamily="{StaticResource Poppins}"
+                                           FontSize="13"
+                                           Foreground="#16345E"/>
+                                <TextBlock Text="{Binding BirthDateText}"
+                                           FontFamily="{StaticResource LilitaOne}"
+                                           FontSize="32"
+                                           Foreground="#142E56"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Grid>
+
+                           <Grid ColumnDefinitions="52,*">
+                            <Image Grid.Column="0"
+                                   Source="avares://Quibee/Assets/Images/RobotHead.png"
+                                Width="48"
+                                Height="48"
+                                VerticalAlignment="Top"
+                                Margin="0,4,0,0"/>
+                            <StackPanel Grid.Column="1" Margin="10,0,0,0">
+                                <TextBlock Text="Género:"
+                                           FontFamily="{StaticResource Poppins}"
+                                           FontSize="13"
+                                           Foreground="#16345E"/>
+                                <TextBlock Text="{Binding GenderText}"
+                                           FontFamily="{StaticResource LilitaOne}"
+                                           FontSize="30"
+                                           Foreground="#142E56"
+                                           TextTrimming="CharacterEllipsis"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+                </StackPanel>
+
+                <StackPanel Grid.Column="1"
+                            Margin="0,24,0,0"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Top"
+                            Spacing="12">
+
+                    <Border Background="#EFEFF1"
+                            CornerRadius="22"
+                            Width="520"
+                            Height="460"
+                            HorizontalAlignment="Center">
+                        <Image Source="avares://Quibee/Assets/Images/Robot.png"
+                               Stretch="Uniform"
+                               Margin="10"/>
+                    </Border>
+
+                    <Border Background="#AEE6FF"
+                            CornerRadius="16"
+                            Padding="24,6"
+                            Width="520"
+                            HorizontalAlignment="Center">
+                        <TextBlock Text="{Binding StudentFullName}"
+                                   FontFamily="{StaticResource LilitaOne}"
+                                   FontSize="22"
+                                   HorizontalAlignment="Center"
+                                   TextAlignment="Center"
+                                   Foreground="#143B67"
+                                   TextWrapping="NoWrap"
+                                   TextTrimming="CharacterEllipsis"/>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Grid>
+    </Border>
+</UserControl>

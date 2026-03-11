@@ -65,19 +65,16 @@ namespace Quibee.ViewModels
         }
 
         /// <summary>
-        /// Navega a la vista de selección de nivel (post-registro)
-        /// </summary>
-        public void NavigateToGradeSelection(int studentId)
-        {
-            CurrentView = new GradeSelectionViewModel(this, studentId);
-        }
-
-        /// <summary>
         /// Navega a la vista de confirmación de registro
         /// </summary>
         public void NavigateToRegistrationConfirmation(UserRegistrationData userData)
         {
             CurrentView = new RegistrationConfirmationViewModel(this, userData);
+        }
+
+        public void NavigateToProfile(int studentId, int levelNumber)
+        {
+            CurrentView = new ProfileViewModel(this, studentId, levelNumber);
         }
 
         /// <summary>

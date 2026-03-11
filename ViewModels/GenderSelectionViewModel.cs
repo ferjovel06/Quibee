@@ -39,6 +39,7 @@ public class GenderSelectionViewModel : ViewModelBase
         if (_userData != null)
         {
             _userData.Genero = "Masculino";
+            _userData.Nivel = "Primer Nivel";
             _mainWindowViewModel?.NavigateToRegistrationConfirmation(_userData);
         }
     }
@@ -49,6 +50,7 @@ public class GenderSelectionViewModel : ViewModelBase
         if (_userData != null)
         {
             _userData.Genero = "Femenino";
+            _userData.Nivel = "Primer Nivel";
             _mainWindowViewModel?.NavigateToRegistrationConfirmation(_userData);
         }
     }

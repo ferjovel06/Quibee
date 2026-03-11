@@ -15,6 +15,8 @@ namespace Quibee.Views.Controls;
 
 public partial class MatchingExerciseControl : UserControl
 {
+    private static readonly FontFamily EmojiFontFamily = FontFamily.Parse("Segoe UI Emoji, Segoe UI Symbol");
+
     private string? _groupKey;
 
     /// <summary>
@@ -980,6 +982,7 @@ public partial class MatchingExerciseControl : UserControl
                 {
                     Text = emoji,
                     FontSize = 34,
+                    FontFamily = EmojiFontFamily,
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(1)
                 });
@@ -1003,6 +1006,7 @@ public partial class MatchingExerciseControl : UserControl
                 {
                     Text = emoji,
                     FontSize = 34,
+                    FontFamily = EmojiFontFamily,
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(1)
                 });
@@ -1175,6 +1179,7 @@ public partial class MatchingExerciseControl : UserControl
                     {
                         Text = row.Emoji,
                         FontSize = 36,
+                        FontFamily = EmojiFontFamily,
                         VerticalAlignment = VerticalAlignment.Center
                     });
                 }
@@ -1206,6 +1211,7 @@ public partial class MatchingExerciseControl : UserControl
                 {
                     Text = row.Emoji,
                     FontSize = 36,
+                    FontFamily = EmojiFontFamily,
                     VerticalAlignment = VerticalAlignment.Center,
                     Margin = new Thickness(3)
                 });

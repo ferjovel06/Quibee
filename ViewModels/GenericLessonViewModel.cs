@@ -56,6 +56,8 @@ public class GenericLessonViewModel : ViewModelBase
 
         // Comandos
         VolverCommand = new RelayCommand(OnVolver);
+        ManualCommand = new RelayCommand(OnManual);
+        UsuarioCommand = new RelayCommand(OnUsuario);
         SectionClickCommand = new RelayCommand(param => OnSectionClick(param));
         ClosePopupCommand = new RelayCommand(_ => OnClosePopup());
 
@@ -291,6 +293,8 @@ public class GenericLessonViewModel : ViewModelBase
 
     // Comandos
     public ICommand VolverCommand { get; }
+    public ICommand ManualCommand { get; }
+    public ICommand UsuarioCommand { get; }
     public ICommand SectionClickCommand { get; }
     public ICommand ClosePopupCommand { get; }
 
@@ -332,6 +336,16 @@ public class GenericLessonViewModel : ViewModelBase
         Cleanup();
         // Volver al mapa de lecciones
         _mainWindowViewModel?.NavigateToLessonsMap(_lessonData.StudentId, _lessonData.LevelNumber);
+    }
+
+    private void OnManual()
+    {
+    }
+
+    private void OnUsuario()
+    {
+        Cleanup();
+        _mainWindowViewModel?.NavigateToProfile(_lessonData.StudentId, _lessonData.LevelNumber);
     }
 
     private void OnSectionClick(object? parameter)

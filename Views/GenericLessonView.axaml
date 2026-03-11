@@ -36,7 +36,8 @@
                         <!-- Botón Manual -->
                         <Button Background="Transparent"
                                BorderThickness="0"
-                               Cursor="Hand">
+                               Cursor="Hand"
+                               Command="{Binding ManualCommand}">
                             <TextBlock Text="Manual"
                                      FontFamily="{StaticResource LilitaOne}"
                                      FontSize="24"
@@ -48,7 +49,8 @@
                                BorderThickness="0"
                                CornerRadius="20"
                                Padding="30,10"
-                               Cursor="Hand">
+                               Cursor="Hand"
+                               Command="{Binding UsuarioCommand}">
                             <TextBlock Text="Usuario"
                                      FontFamily="{StaticResource LilitaOne}"
                                      FontSize="24"

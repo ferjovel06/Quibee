@@ -470,6 +470,67 @@ WHERE NOT EXISTS (SELECT 1 FROM LESSON_CONTENT WHERE id_content = 3274);
 INSERT INTO LESSON_CONTENT (id_content, id_lesson, content_type, content_data, order_index, section_type, is_active, created_at, updated_at)
 SELECT 3275, 5, 'text', json_object('text', 'Problema 3: Tienes 2 peluches y recibes 5 más como regalo. ¿Cuántos peluches tienes ahora?', 'fontSize', 16, 'color', '#FFFFFF'), 11, 'desafio', 1, datetime('now'), NULL
 WHERE NOT EXISTS (SELECT 1 FROM LESSON_CONTENT WHERE id_content = 3275);
+
+UPDATE EXERCISE
+SET config = json_remove(
+    json_set(
+        config,
+        '$.rows[0].imageUrl', 'avares://Quibee/Assets/Images/Apple.png',
+        '$.rows[0].rightImageUrl', 'avares://Quibee/Assets/Images/Banana.png',
+        '$.rows[1].imageUrl', 'avares://Quibee/Assets/Images/Banana.png',
+        '$.rows[1].rightImageUrl', 'avares://Quibee/Assets/Images/Orange.png',
+        '$.rows[2].imageUrl', 'avares://Quibee/Assets/Images/Orange.png',
+        '$.rows[2].rightImageUrl', 'avares://Quibee/Assets/Images/Apple.png',
+        '$.rows[0].imageWidth', 34,
+        '$.rows[0].imageHeight', 34,
+        '$.rows[0].rightImageWidth', 34,
+        '$.rows[0].rightImageHeight', 34,
+        '$.rows[1].imageWidth', 34,
+        '$.rows[1].imageHeight', 34,
+        '$.rows[1].rightImageWidth', 34,
+        '$.rows[1].rightImageHeight', 34,
+        '$.rows[2].imageWidth', 34,
+        '$.rows[2].imageHeight', 34,
+        '$.rows[2].rightImageWidth', 34,
+        '$.rows[2].rightImageHeight', 34
+    ),
+    '$.rows[0].emoji', '$.rows[0].rightEmoji',
+    '$.rows[1].emoji', '$.rows[1].rightEmoji',
+    '$.rows[2].emoji', '$.rows[2].rightEmoji'
+)
+WHERE id_exercise = 257;
+
+UPDATE EXERCISE
+SET config = json_remove(
+    json_set(
+        config,
+        '$.objects[1].imageUrl', 'avares://Quibee/Assets/Images/Ball.png',
+        '$.objects[1].width', 44,
+        '$.objects[1].height', 44,
+        '$.objects[4].imageUrl', 'avares://Quibee/Assets/Images/Frog.png',
+        '$.objects[4].width', 44,
+        '$.objects[4].height', 44
+    ),
+    '$.objects[1].emoji', '$.objects[1].fontSize',
+    '$.objects[4].emoji', '$.objects[4].fontSize'
+)
+WHERE id_exercise = 261;
+
+UPDATE EXERCISE
+SET config = json_remove(
+    json_set(
+        config,
+        '$.objects[2].imageUrl', 'avares://Quibee/Assets/Images/Ball.png',
+        '$.objects[2].width', 44,
+        '$.objects[2].height', 44,
+        '$.objects[5].imageUrl', 'avares://Quibee/Assets/Images/Ball.png',
+        '$.objects[5].width', 44,
+        '$.objects[5].height', 44
+    ),
+    '$.objects[2].emoji', '$.objects[2].fontSize',
+    '$.objects[5].emoji', '$.objects[5].fontSize'
+)
+WHERE id_exercise = 307;
 ");
         }
         catch (Exception ex)

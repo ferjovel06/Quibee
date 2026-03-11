@@ -34,14 +34,13 @@
       <views:GenderSelectionView/>
     </DataTemplate>
     
-    <!-- DataTemplate para GradeSelectionViewModel -->
-    <DataTemplate DataType="vm:GradeSelectionViewModel">
-      <views:GradeSelectionView/>
-    </DataTemplate>
-    
     <!-- DataTemplate para RegistrationConfirmationViewModel -->
     <DataTemplate DataType="vm:RegistrationConfirmationViewModel">
       <views:RegistrationConfirmationView/>
+    </DataTemplate>
+
+    <DataTemplate DataType="vm:ProfileViewModel">
+      <views:ProfileView/>
     </DataTemplate>
     
     <!-- DataTemplate para LessonsMapViewModel -->

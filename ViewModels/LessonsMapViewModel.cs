@@ -12,6 +12,8 @@ namespace Quibee.ViewModels;
 
 public class LessonsMapViewModel : ViewModelBase
 {
+    private const int AlwaysLockedFromLessonId = 6;
+
     private readonly MainWindowViewModel? _mainWindowViewModel;
     private readonly int _studentId;
     private readonly int _levelNumber;
@@ -258,6 +260,15 @@ public class LessonsMapViewModel : ViewModelBase
 
         foreach (var theme in orderedThemes)
         {
+            if (theme.LessonId >= AlwaysLockedFromLessonId)
+            {
+                theme.NodeState = "locked";
+                theme.ImagePath = "avares://Quibee/Assets/Images/Lock.png";
+                theme.ImageWidth = 76;
+                theme.ImageHeight = 76;
+                continue;
+            }
+
             if (theme.LessonProgressPercentage >= 100)
             {
                 theme.NodeState = "completed";
@@ -398,6 +409,6 @@ public class LessonsMapViewModel : ViewModelBase
 
     private void OnUsuario()
     {
-        // TODO: Navegar al perfil del usuario
+        _mainWindowViewModel?.NavigateToProfile(_studentId, _levelNumber);
     }
 }

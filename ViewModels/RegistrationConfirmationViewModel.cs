@@ -19,6 +19,11 @@ namespace Quibee.ViewModels
         {
             _mainWindowViewModel = mainWindowViewModel;
             _userData = userData;
+
+            if (string.IsNullOrWhiteSpace(_userData.Nivel))
+            {
+                _userData.Nivel = "Primer Nivel";
+            }
             
             ContinuarCommand = new RelayCommand(OnContinuar);
         }
@@ -78,9 +83,9 @@ namespace Quibee.ViewModels
                     Console.WriteLine($"   👤 Usuario: {student.Username}");
                     Console.WriteLine($"   🎓 Nivel: {student.LevelNumber}°");
                     Console.WriteLine($"   🔑 ID: {student.IdStudent}");
-                    
-                    // Navegar a la selección de nivel después del registro.
-                    _mainWindowViewModel?.NavigateToGradeSelection(student.IdStudent);
+
+                    // Temporalmente, todo usuario nuevo inicia en nivel 1.
+                    _mainWindowViewModel?.NavigateToLessonsMap(student.IdStudent, 1);
                 }
                 else
                 {

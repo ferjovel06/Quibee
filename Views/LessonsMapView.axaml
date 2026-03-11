@@ -46,56 +46,13 @@
                             BorderThickness="0"
                             Margin="0,2,10,2"
                             Padding="16,12"
+                            Command="{Binding UsuarioCommand}"
                             HorizontalAlignment="Stretch"
                             HorizontalContentAlignment="Right">
                         <StackPanel Orientation="Horizontal"
                                     HorizontalAlignment="Right"
                                     Spacing="12">
-                            <TextBlock Text="Logros"
-                                       FontFamily="{StaticResource Poppins}"
-                                       FontWeight="SemiBold"
-                                       FontSize="18"
-                                       Foreground="#1A214A"
-                                       VerticalAlignment="Center"/>
-                            <Image Source="avares://Quibee/Assets/Images/Icons/TrophyDark.png"
-                                   Width="18"
-                                   Height="18"
-                                   VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Background="Transparent"
-                            BorderThickness="0"
-                            Margin="0,2,10,2"
-                            Padding="16,12"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Right">
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Right"
-                                    Spacing="12">
-                            <TextBlock Text="Progreso"
-                                       FontFamily="{StaticResource Poppins}"
-                                       FontWeight="SemiBold"
-                                       FontSize="18"
-                                       Foreground="#1A214A"
-                                       VerticalAlignment="Center"/>
-                            <Image Source="avares://Quibee/Assets/Images/Icons/ChartDark.png"
-                                   Width="18"
-                                   Height="18"
-                                   VerticalAlignment="Center"/>
-                        </StackPanel>
-                    </Button>
-
-                    <Button Background="Transparent"
-                            BorderThickness="0"
-                            Margin="0,2,10,2"
-                            Padding="16,12"
-                            HorizontalAlignment="Stretch"
-                            HorizontalContentAlignment="Right">
-                        <StackPanel Orientation="Horizontal"
-                                    HorizontalAlignment="Right"
-                                    Spacing="12">
-                            <TextBlock Text="Desafío"
+                            <TextBlock Text="Perfil"
                                        FontFamily="{StaticResource Poppins}"
                                        FontWeight="SemiBold"
                                        FontSize="18"
